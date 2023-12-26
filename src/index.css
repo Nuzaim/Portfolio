@@ -1,0 +1,14 @@
+*{ 
+	box-sizing: border-box;
+}
+body{ 
+	background: #3f4b44;
+	/* color: #3f4b44; */
+	font-family: 'Manrope', sans-serif;
+	overflow-x: hidden;
+	margin: 0;
+}
+a{
+	text-decoration: none;
+	color: inherit;
+}

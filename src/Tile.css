@@ -1,0 +1,33 @@
+section{
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 2em;
+}
+section > a{
+	display: inline-block;
+	width: 35ch;
+	aspect-ratio: 3/4;
+	padding: 0 2%;
+	background: #fffff6;
+	border-radius: 20px;
+	box-shadow: 0 0 5px 5px rgb( 0 0 0 / 0.2);
+	transition: transform 0.5s;
+}
+section > a:hover{
+	transform: perspective(1000px) translateZ(80px);
+}
+@media(max-width: 500px){
+	section > a{
+		padding: 0 20px;
+	}
+}
+@media(max-width: 400px){
+	section > a{
+		width: 30ch;
+		aspect-ratio: 3/4;
+	}
+	section > a:hover{
+		transform: perspective(1000px) translateZ(0px);
+	}
+}

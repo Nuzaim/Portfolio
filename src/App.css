@@ -1,0 +1,26 @@
+header{
+	height: 100svh;
+	margin: 0;
+	text-align: center;
+	color: #FFFBF5;
+	padding-top: 30vh;
+}
+h1{
+	color: #fff;
+	text-align: center;
+}
+header > p{
+	font-size: 30px;
+}
+.name{
+	font-size: 50px;
+  color: #fff8de;
+}
+.name > span{
+	display: block;
+}
+@media(max-width: 500px){
+	header{
+		padding-top: 25vh;
+		}
+}

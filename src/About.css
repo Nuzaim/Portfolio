@@ -1,0 +1,25 @@
+#about{
+	color: white;
+	text-align: center;
+	display: flex;
+	margin: 5% 0 10% 0;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 2rem;
+}
+#about > h1{
+	width: 100%;
+	margin: 0;
+}
+#about > p{
+	font-size: 1.2rem;
+	font-weight: 500;
+	width: 45ch;
+	padding: 0 1.5rem;
+	text-align: left;
+}
+#about > img{
+	width: 16rem;
+	border-radius: 100%;
+}
