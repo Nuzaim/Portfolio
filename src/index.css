@@ -2,9 +2,9 @@
 	box-sizing: border-box;
 }
 body{ 
-	background: #3f4b44;
+	background: radial-gradient(52.96% 53.85% at 51.4% 44.83%, #372A4D 0%, #171122 100%);
 	/* color: #3f4b44; */
-	font-family: 'Manrope', sans-serif;
+	font-family: 'Space Grotesk', sans-serif;
 	overflow-x: hidden;
 	margin: 0;
 }

@@ -4,6 +4,7 @@ import Tile from "./Tile.jsx";
 import Navbar from "./Navbar.jsx";
 import About from "./About.jsx";
 import Footer from "./Footer.jsx";
+import MobileNav from "./MobileNav.jsx"
 
 function App() {
 
@@ -22,10 +23,10 @@ function App() {
 	return (
 		<>
 			<header>
-				<h1 class="name"><span>Hi,</span><span>I'm Nuzaim Noushad.</span></h1>
+				<h1 className="name"><span>Hi,<span className="emoji">👋</span></span><span>I'm Nuzaim Noushad.</span></h1>
 				<p>A Fullstack Developer.</p>
 			</header>
-			<Navbar scroll={isScroll} />
+			{window.innerWidth > 515 ? <Navbar scroll={isScroll} /> : <MobileNav />}
 			<h1 id="projects">Projects</h1>
 			<section style={{ marginTop: "6rem" }}>
 				{tiles}

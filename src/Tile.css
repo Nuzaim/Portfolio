@@ -3,13 +3,19 @@ section{
 	justify-content: center;
 	flex-wrap: wrap;
 	gap: 2em;
+	padding: 0 10%;
+	line-height: 1.6rem;
 }
 section > a{
 	display: inline-block;
 	width: 35ch;
 	aspect-ratio: 3/4;
 	padding: 0 2%;
-	background: #fffff6;
+	background: rgba(255, 255, 255, 0.15);
+	border: 2px solid rgba(255, 255, 255, 0.32);
+	backdrop-filter: blur(36.5px);
+	-webkit-backdrop-filter: blur(36.5px);
+	color: #fff;
 	border-radius: 20px;
 	box-shadow: 0 0 5px 5px rgb( 0 0 0 / 0.2);
 	transition: transform 0.5s;

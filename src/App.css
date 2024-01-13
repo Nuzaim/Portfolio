@@ -2,7 +2,7 @@ header{
 	height: 100svh;
 	margin: 0;
 	text-align: center;
-	color: #FFFBF5;
+	color: #fff;
 	padding-top: 30vh;
 }
 h1{
@@ -14,10 +14,25 @@ header > p{
 }
 .name{
 	font-size: 50px;
-  color: #fff8de;
 }
 .name > span{
 	display: block;
+}
+.emoji{
+	display: inline-block;
+	animation: rotate 1s infinite;
+	margin-left: 0.5rem;
+}
+@keyframes rotate{
+	0%{
+		transform: rotate(-10deg);
+	}
+	50%{
+		transform: rotate(10deg);
+	}
+	100%{
+		transform: rotate(-10deg);
+	}
 }
 @media(max-width: 500px){
 	header{

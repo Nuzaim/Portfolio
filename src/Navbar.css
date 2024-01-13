@@ -1,26 +1,41 @@
 nav{
 	height: 70px;
 	width: 90%;
-	border-radius: 50px;
+	border-radius: 1rem;
 	padding: 0 10%;
 	margin: 2rem 0 0 5%;
 	text-transform: uppercase;
-	color: white;
+	color: #fff;
 	position: fixed;
-	top: 80vh;
-	/* box-shadow: 0 0 5px 10px rgb( 0 0 0 / 0.1); */
+	top: 70vh;
 	z-index: 1;
+	display: flex;
+	justify-content: center;
 }
 .scroll{
 	animation: scroll 1s;
 	animation-fill-mode: forwards;
 	box-shadow: 0 0 5px 10px rgb( 0 0 0 / 0.1);
 }
+nav > img{
+	width: 4rem;
+	opacity: 0%;
+	position: fixed;
+	left: 10vw;
+	transition: opacity 2s;
+}
+.logo{
+	opacity: 100%;
+}
 @keyframes scroll{
 	to{
 		top: 0;
-		background: #fff8de;
-		color: #3f4b44;
+		background: rgba(255, 255, 255, 0.15);
+		color: #fff;
+		border: 2px solid rgba(255, 255, 255, 0.32);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		justify-content: flex-end;
 	}
 }
 ul{
@@ -28,19 +43,30 @@ ul{
 	justify-content: flex-end;
   margin-top: 25px;	
 	list-style: none;
+	gap: 2rem;
 }
 ul > li{
-	padding-right: 2rem;
+	position: relative;
 }
 li > a{
 	font-weight: 800;
+}
+li > a.special::before{
+	content: '';
+	background: #fff;
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	transition: width 0.5s;
+	top: 100%;
+}
+li > a:hover::before{
+	width: 0%;
 }
 @media(max-width: 500px){
 	nav{
 		top: 0;
 		border-radius: 0;
-		background: #fffff0;
-		color: #3f4b44;
 		width: 100%;
 		margin: 0;
 		padding: 0;
