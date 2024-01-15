@@ -21,7 +21,7 @@ section > a{
 	transition: transform 0.5s;
 }
 section > a:hover{
-	transform: perspective(1000px) translateZ(80px);
+	transform: scale(1.1);
 }
 @media(max-width: 500px){
 	section > a{
@@ -34,6 +34,6 @@ section > a:hover{
 		aspect-ratio: 3/4;
 	}
 	section > a:hover{
-		transform: perspective(1000px) translateZ(0px);
+		transform: scale(1);
 	}
 }
