@@ -13,9 +13,9 @@ function mobileNav() {
       </div>
       <div className={isNavToggle ? "navToggle toggle" : "navToggle"} >
         {isNavToggle ? <ul>
-          <li> <a href="#">Home</a> </li>
-          <li> <a href="#projects">Projects</a> </li>
-          <li> <a href="#about">About</a> </li>
+          <li> <a href="#" onClick={() => { setIsNavToggle(prevState => !prevState) }}>Home</a> </li>
+          <li> <a href="#projects" onClick={() => { setIsNavToggle(prevState => !prevState) }}>Projects</a> </li>
+          <li> <a href="#about" onClick={() => { setIsNavToggle(prevState => !prevState) }}>About</a> </li>
         </ul> : <></>}
       </div>
     </>
