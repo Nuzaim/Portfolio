@@ -2,6 +2,8 @@ section{
 	display: flex;
 	justify-content: center;
 	flex-wrap: wrap;
+	margin-top: 6rem;
+	margin-bottom: 1rem;
 	gap: 2em;
 	padding: 0 10%;
 	line-height: 1.6rem;
@@ -21,9 +23,30 @@ section > a{
 	transition: transform 0.5s;
 }
 section > a:hover{
-	transform: scale(1.1);
+	transform: scale(1.07);
+}
+@media(max-width: 936px){
+	.slider{
+		overflow-y: hidden;
+		scrollbar-width: none;
+	}
+	.slider::-webkit-scrollbar{
+		display:none;
+	}
+	section{
+		width: fit-content;
+		flex-wrap: nowrap;
+		margin-top: 2rem;
+		gap: 1.5em;
+	}
+	section > a:hover{
+		transform: none;
+	}
 }
 @media(max-width: 500px){
+	section{
+		margin-top: 1rem;
+	}
 	section > a{
 		padding: 0 20px;
 	}
@@ -32,8 +55,5 @@ section > a:hover{
 	section > a{
 		width: 30ch;
 		aspect-ratio: 3/4;
-	}
-	section > a:hover{
-		transform: scale(1);
 	}
 }

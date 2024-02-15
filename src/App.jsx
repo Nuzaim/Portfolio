@@ -28,9 +28,11 @@ function App() {
 			</header>
 			{window.innerWidth > 515 ? <Navbar scroll={isScroll} /> : <MobileNav />}
 			<h1 id="projects">Projects</h1>
-			<section style={{ marginTop: "6rem" }}>
-				{tiles}
-			</section>
+			<div className="slider">
+				<section>
+					{tiles}
+				</section>
+			</div>
 			<About />
 			<Footer />
 		</>
