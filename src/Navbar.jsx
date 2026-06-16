@@ -3,12 +3,14 @@ import logo from "./assets/logo.png"
 
 function Navbar(props) {
 	return (
-		<nav className={props.scroll ? "scroll" : ""} >
-			{<img src={logo} className={props.scroll ? "logo" : ""} />}
+		<nav className={props.scroll ? "scrolled" : ""} >
+			<img src={logo} alt="Logo" />
 			<ul>
-				<li> <a href="#" className={props.scroll ? "" : "special"}>Home</a> </li>
-				<li> <a href="#projects" className={props.scroll ? "" : "special"}>Projects</a> </li>
-				<li> <a href="#about" className={props.scroll ? "" : "special"}>About Me</a> </li>
+				<li> <a href="#">Home</a> </li>
+				<li> <a href="#experience">Experience</a> </li>
+				<li> <a href="#skills">Skills</a> </li>
+				<li> <a href="#projects">Personal</a> </li>
+				<li> <a href="#about">About</a> </li>
 			</ul>
 		</nav >
 	)

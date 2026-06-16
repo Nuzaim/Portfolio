@@ -8,9 +8,9 @@ export default function About() {
 				<h1> About </h1>
 				<img src={profPic} alt="Profile Picture" />
 				<p>
-					Dedicated and passionate engineer with strong <span style={{ whiteSpace: "nowrap" }}> problem-solving </span> skills, known for being a team player who is honest and reliable, and committed to continuous learning and innovation.
-					Currently studying for B.Tech in Information Technology. <br />
-					Contact me if you want anything 😊.
+					Backend-focused software engineer with hands-on experience building distributed systems, event-driven pipelines, and automation tooling.
+					I enjoy solving reliability and scalability challenges across scraping platforms, CI/CD workflows, and cloud-native services. <br />
+					Reach out at <a href="mailto:nuzaim.t123@gmail.com">nuzaim.t123@gmail.com</a> or connect on <a href="https://linkedin.com/in/nuzaim" target="_blank" rel="noreferrer">LinkedIn</a>.
 				</p>
 			</div >
 		</>

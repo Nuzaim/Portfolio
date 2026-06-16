@@ -3,14 +3,14 @@ header{
 	margin: 0;
 	text-align: center;
 	color: #fff;
-	padding-top: 30vh;
+	padding: 30vh 1.2rem 0;
 }
 h1{
 	color: #fff;
 	text-align: center;
 }
 header > p{
-	font-size: 30px;
+	font-size: 1.65rem;
 }
 .name{
 	font-size: 50px;
@@ -32,6 +32,96 @@ header > p{
 	}
 	100%{
 		transform: rotate(-10deg);
+	}
+}
+
+.contentSection {
+	padding: 2rem 10% 0;
+	color: #fff;
+}
+
+.skillsGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(260px, 1fr));
+	gap: 1.25rem;
+	max-width: 980px;
+	margin: 1.5rem auto 0;
+}
+
+.skillsCard,
+.textCard {
+	background: rgba(255, 255, 255, 0.15);
+	border: 2px solid rgba(255, 255, 255, 0.32);
+	backdrop-filter: blur(36.5px);
+	-webkit-backdrop-filter: blur(36.5px);
+	border-radius: 20px;
+	box-shadow: 0 0 5px 5px rgb(0 0 0 / 0.2);
+	padding: 1.25rem 1.35rem;
+}
+
+.skillsCard > h3,
+.textCard > h3 {
+	margin: 0;
+}
+
+.skillsCard > p {
+	margin-bottom: 0;
+	line-height: 1.6;
+}
+
+.textCard {
+	max-width: 980px;
+	margin: 1.5rem auto 0;
+}
+
+.textCard > span {
+	opacity: 0.85;
+	display: inline-block;
+	margin-top: 0.25rem;
+}
+
+.textCard > p {
+	margin: 0.85rem 0 0;
+	opacity: 0.9;
+}
+
+.textCard ul {
+	margin-top: 1rem;
+	padding-left: 1.1rem;
+	display: grid;
+	gap: 0.65rem;
+}
+
+.textCard li {
+	line-height: 1.6;
+}
+
+#education .textCard,
+#experience .textCard {
+	padding: 1.25rem 1.35rem;
+}
+
+#education .textCard > ul,
+#experience .textCard > ul {
+	margin-top: 0.9rem;
+	padding-left: 1.1rem;
+}
+
+@media(max-width: 740px){
+	.skillsGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.contentSection {
+		padding: 1.5rem 1rem 0;
+	}
+
+	.name{
+		font-size: 42px;
+	}
+
+	header > p {
+		font-size: 1.3rem;
 	}
 }
 @media(max-width: 500px){
