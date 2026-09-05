@@ -15,10 +15,13 @@ footer > div{
 	display: flex;
 	filter: invert(100%);
 }
-div > a {
+footer > div > a {
 	display: block;
 	width: 40px;
 	margin-left: 20px;
+}
+footer > div > a:hover {
+	opacity: 0.7;
 }
 footer > h4 {
 	font-size: 1.9rem;
@@ -31,7 +34,7 @@ footer > h4 {
 	footer > h4 {
 		font-size: 1.5rem;
 	}
-	div > a {
+	footer > div > a {
 		width: 35px;
 	}
 }

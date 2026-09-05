@@ -5,6 +5,20 @@ header{
 	color: #fff;
 	padding: 30vh 1.2rem 0;
 }
+
+/* Keep fragment targets visible below the fixed navigation. */
+html {
+	scroll-behavior: smooth;
+}
+
+#experience,
+#skills,
+#projects,
+#education,
+#about {
+	scroll-margin-block-start: 6rem;
+}
+
 h1{
 	color: #fff;
 	text-align: center;
@@ -38,6 +52,15 @@ header > p{
 .contentSection {
 	padding: 2rem 10% 0;
 	color: #fff;
+}
+
+.projectsSection {
+	padding-top: 2rem;
+}
+
+.contentSection > h1,
+.projectsSection > h1 {
+	margin: 0;
 }
 
 .skillsGrid {
@@ -114,6 +137,10 @@ header > p{
 
 	.contentSection {
 		padding: 1.5rem 1rem 0;
+	}
+
+	.projectsSection {
+		padding-top: 1.5rem;
 	}
 
 	.name{
