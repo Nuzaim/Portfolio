@@ -5,6 +5,7 @@ import Navbar from "./Navbar.jsx";
 import About from "./About.jsx";
 import Footer from "./Footer.jsx";
 import MobileNav from "./MobileNav.jsx";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
 	const projects = [
@@ -104,6 +105,7 @@ function App() {
 
 	return (
 		<>
+			<Analytics />
 			<header>
 				<h1 className="name"><span>Hi,<span className="emoji">👋</span></span><span>I'm Nuzaim Noushad Thappi.</span></h1>
 				<p>Associate Software Engineer building resilient backend systems.</p>
