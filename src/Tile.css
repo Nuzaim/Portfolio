@@ -1,61 +1,9 @@
-.projectGrid{
-	display: flex;
-	justify-content: center;
-	flex-wrap: wrap;
-	--project-card-width: 35ch;
-	margin-top: 1.5rem;
-	margin-bottom: 0;
-	gap: 2em;
-	padding: 0 10%;
-	line-height: 1.6rem;
-}
-.projectGrid > .projectCard{
-	display: inline-block;
-	width: var(--project-card-width);
-	/* Keep the established card proportion without constraining its content. */
-	min-height: calc(var(--project-card-width) * 4 / 3);
-	padding: 0 2%;
+.tile {
 	background: rgba(255, 255, 255, 0.15);
 	border: 2px solid rgba(255, 255, 255, 0.32);
 	backdrop-filter: blur(36.5px);
 	-webkit-backdrop-filter: blur(36.5px);
-	color: #fff;
 	border-radius: 20px;
 	box-shadow: 0 0 5px 5px rgb( 0 0 0 / 0.2);
 	transition: transform 0.5s;
-	overflow-wrap: anywhere;
-}
-.projectGrid > .projectCard:hover{
-	transform: scale(1.07);
-}
-@media(max-width: 936px){
-	.slider{
-		overflow-y: hidden;
-		scrollbar-width: none;
-	}
-	.slider::-webkit-scrollbar{
-		display:none;
-	}
-	.projectGrid{
-		width: fit-content;
-		flex-wrap: nowrap;
-		margin-top: 2rem;
-		gap: 1.5em;
-	}
-	.projectGrid > .projectCard:hover{
-		transform: none;
-	}
-}
-@media(max-width: 500px){
-	.projectGrid{
-		margin-top: 1rem;
-	}
-	.projectGrid > .projectCard{
-		padding: 0 20px;
-	}
-}
-@media(max-width: 400px){
-	.projectGrid > .projectCard{
-		--project-card-width: 30ch;
-	}
 }

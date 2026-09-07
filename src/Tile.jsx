@@ -1,12 +1,18 @@
+import PropTypes from "prop-types";
 import "./Tile.css";
 
-function Tile(props) {
+function Tile({ as: Component = "div", children, className = "", ...props }) {
 	return (
-		<a className="projectCard" id={props.id} href={props.link} >
-			<h2>{props.title}</h2>
-			<p>{props.description}</p>
-		</a>
-	)
+		<Component className={`tile ${className}`.trim()} {...props}>
+			{children}
+		</Component>
+	);
 }
+
+Tile.propTypes = {
+	as: PropTypes.elementType,
+	children: PropTypes.node,
+	className: PropTypes.string
+};
 
 export default Tile;

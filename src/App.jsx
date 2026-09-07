@@ -23,7 +23,10 @@ function App() {
 	}, []);
 
 	const tiles = projects.map((item) => (
-		<Tile key={item.id} id={item.id} title={item.title} description={item.description} link={item.link} />
+		<Tile as="a" className="projectCard" href={item.link} id={item.id} key={item.id}>
+			<h2>{item.title}</h2>
+			<p>{item.description}</p>
+		</Tile>
 	));
 
 	return (
