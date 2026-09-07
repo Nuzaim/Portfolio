@@ -1,17 +1,19 @@
-section{
+.projectGrid{
 	display: flex;
 	justify-content: center;
 	flex-wrap: wrap;
+	--project-card-width: 35ch;
 	margin-top: 1.5rem;
 	margin-bottom: 0;
 	gap: 2em;
 	padding: 0 10%;
 	line-height: 1.6rem;
 }
-section > a{
+.projectGrid > .projectCard{
 	display: inline-block;
-	width: 35ch;
-	aspect-ratio: 3/4;
+	width: var(--project-card-width);
+	/* Keep the established card proportion without constraining its content. */
+	min-height: calc(var(--project-card-width) * 4 / 3);
 	padding: 0 2%;
 	background: rgba(255, 255, 255, 0.15);
 	border: 2px solid rgba(255, 255, 255, 0.32);
@@ -21,8 +23,9 @@ section > a{
 	border-radius: 20px;
 	box-shadow: 0 0 5px 5px rgb( 0 0 0 / 0.2);
 	transition: transform 0.5s;
+	overflow-wrap: anywhere;
 }
-section > a:hover{
+.projectGrid > .projectCard:hover{
 	transform: scale(1.07);
 }
 @media(max-width: 936px){
@@ -33,27 +36,26 @@ section > a:hover{
 	.slider::-webkit-scrollbar{
 		display:none;
 	}
-	section{
+	.projectGrid{
 		width: fit-content;
 		flex-wrap: nowrap;
 		margin-top: 2rem;
 		gap: 1.5em;
 	}
-	section > a:hover{
+	.projectGrid > .projectCard:hover{
 		transform: none;
 	}
 }
 @media(max-width: 500px){
-	section{
+	.projectGrid{
 		margin-top: 1rem;
 	}
-	section > a{
+	.projectGrid > .projectCard{
 		padding: 0 20px;
 	}
 }
 @media(max-width: 400px){
-	section > a{
-		width: 30ch;
-		aspect-ratio: 3/4;
+	.projectGrid > .projectCard{
+		--project-card-width: 30ch;
 	}
 }

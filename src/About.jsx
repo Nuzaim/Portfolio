@@ -5,7 +5,7 @@ export default function About() {
 	return (
 		<>
 			<div id="about">
-				<h1> About </h1>
+				<h1 className="sectionTitle"> About </h1>
 				<img src={profPic} alt="Profile Picture" />
 				<p>
 					Backend-focused software engineer with hands-on experience building distributed systems, event-driven pipelines, and automation tooling.

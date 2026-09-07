@@ -1,17 +1,17 @@
 import { useState } from "react"
 import "./MobileNav.css"
 
-function mobileNav() {
+function mobileNav({ isVisible }) {
   const [isNavToggle, setIsNavToggle] = useState(false);
   return (
     <>
-      <div className={isNavToggle ? "mobileNav cross" : "mobileNav"} onClick={() => { setIsNavToggle(prevState => !prevState) }}>
+      <div className={`${isVisible ? "mobileNav is-visible" : "mobileNav"}${isNavToggle ? " cross" : ""}`} onClick={() => { setIsNavToggle(prevState => !prevState) }}>
         <div />
         <div />
         <div />
         <div />
       </div>
-      <div className={isNavToggle ? "navToggle toggle" : "navToggle"} >
+      <div className={`${isVisible ? "navToggle is-visible" : "navToggle"}${isNavToggle ? " toggle" : ""}`} >
         {isNavToggle ? <ul>
           <li> <a href="#" onClick={() => { setIsNavToggle(prevState => !prevState) }}>Home</a> </li>
           <li> <a href="#experience" onClick={() => { setIsNavToggle(prevState => !prevState) }}>Experience</a> </li>

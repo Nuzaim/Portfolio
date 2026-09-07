@@ -1,4 +1,4 @@
-footer{
+.siteFooter{
 	height: 80px;
 	background: #fff8de;
 	border-radius: 1rem 1rem 0 0;
@@ -10,31 +10,31 @@ footer{
 	gap: 2rem;
 	justify-content: center;
 }
-footer > div{
+.siteFooter > div{
 	margin: 0;
 	display: flex;
 	filter: invert(100%);
 }
-footer > div > a {
+.siteFooter > div > a {
 	display: block;
 	width: 40px;
 	margin-left: 20px;
 }
-footer > div > a:hover {
+.siteFooter > div > a:hover {
 	opacity: 0.7;
 }
-footer > h4 {
+.siteFooter > h4 {
 	font-size: 1.9rem;
 	color: #fff;
 }
 @media(max-width: 500px){
-	footer{
+	.siteFooter{
 		padding: 0 40px;
 	}
-	footer > h4 {
+	.siteFooter > h4 {
 		font-size: 1.5rem;
 	}
-	footer > div > a {
+	.siteFooter > div > a {
 		width: 35px;
 	}
 }

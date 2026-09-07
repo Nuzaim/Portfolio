@@ -2,7 +2,7 @@ import "./Footer.css";
 
 export default function Footer() {
   return (
-    <footer>
+    <footer className="siteFooter">
       <h4>Contact</h4>
       <div>
         <a href="https://twitter.com/nuzaim_noushad" target="_blank" rel="noreferrer" aria-label="Twitter">

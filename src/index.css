@@ -1,3 +1,7 @@
+:root {
+	--fragment-scroll-offset: 6rem;
+}
+
 *{ 
 	box-sizing: border-box;
 }
@@ -8,7 +12,13 @@ body{
 	overflow-x: hidden;
 	margin: 0;
 }
-a{
+.portfolio a{
 	text-decoration: none;
 	color: inherit;
+}
+
+
+.portfolio.mobile-nav-active {
+	/* MobileNav sits 5vh from the top and is 60px tall. */
+	--fragment-scroll-offset: calc(5vh + 60px + 1rem);
 }
