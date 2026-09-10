@@ -1,9 +1,1 @@
-.tile {
-	background: rgba(255, 255, 255, 0.15);
-	border: 2px solid rgba(255, 255, 255, 0.32);
-	backdrop-filter: blur(36.5px);
-	-webkit-backdrop-filter: blur(36.5px);
-	border-radius: 20px;
-	box-shadow: 0 0 5px 5px rgb( 0 0 0 / 0.2);
-	transition: transform 0.5s;
-}
+.tile { background: #f8f8f4; border: 1px solid #c8c8c1; box-shadow: 5px 5px 0 #d8d8d1; transition: transform 200ms, box-shadow 200ms; }.tile:hover { transform: translateY(-4px); box-shadow: 5px 9px 0 #d0d0c9; }

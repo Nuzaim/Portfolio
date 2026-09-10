@@ -1,214 +1,113 @@
-.hero{
-	height: 100svh;
-	margin: 0;
-	text-align: center;
-	color: #fff;
-	padding: 30vh 1.2rem 0;
+.portfolio { min-height: 100svh; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; border: 1px solid #999993; background: #f5f5ef; padding: 11px 15px; }
+button:hover { background: #222; color: #fff; }
+button:focus-visible, a:focus-visible { outline: 3px solid #555; outline-offset: 4px; }
+.skipLink { position: fixed; top: -100px; left: 20px; padding: 16px; background: white; z-index: 200; }
+.skipLink:focus { top: 12px; }
+.siteHeader { position: relative; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 25px; margin: 0 3.5%; padding: 24px 0; border-bottom: 1px solid #2224; }
+.monogram { font: 600 17px 'IBM Plex Mono', monospace; letter-spacing: -.06em; white-space: nowrap; }
+.monogram span { display: block; font: 10px 'IBM Plex Mono', monospace; letter-spacing: 0; margin-top: 7px; color: #5d5d57; }
+.siteHeader nav { display: flex; gap: clamp(15px, 2.5vw, 42px); }
+.siteHeader nav a { font: 12px 'IBM Plex Mono', monospace; text-transform: capitalize; padding: 8px 0; border-bottom: 1px solid transparent; }
+.siteHeader nav a:hover, .siteHeader nav a[aria-current] { border-color: currentColor; }
+.siteHeader nav small { font-size: 9px; color: #676760; margin-right: 6px; }
+.viewButton { font: 11px 'IBM Plex Mono', monospace; white-space: nowrap; }
+.intro { position: relative; z-index: 2; margin: 66px 6%; pointer-events: none; }
+.eyebrow { font: 10px 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .13em; }
+.intro h1 { font-size: clamp(40px, 4vw, 64px); font-weight: 500; line-height: 1; letter-spacing: -.065em; margin: 20px 0 26px; }
+.intro h1 span { font-size: 14px; vertical-align: top; margin-left: 8px; }
+.role { font: 12px 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .07em; }
+.introSentence { font-size: 14px; color: #5a5a54; }
+.sceneView { height: 100svh; min-height: 650px; position: relative; overflow: hidden; background: #d2d2ce; }
+.sceneView .intro { position: absolute; top: 108px; left: 3.5%; margin: 0; }
+.sceneView .intro h1 { font-size: clamp(32px, 3.2vw, 50px); }
+.sceneStage { position: absolute; inset: 90px 0 65px; }
+.workspace { width: 100%; height: 100%; touch-action: none; }
+.workspace canvas { touch-action: none; }
+.isHovering canvas { cursor: pointer; }
+.sceneFooter { position: absolute; left: 3.5%; right: 3.5%; bottom: 64px; display: flex; justify-content: space-between; align-items: end; z-index: 2; pointer-events: none; }
+.sceneFooter button { pointer-events: auto; font: 11px 'IBM Plex Mono', monospace; }
+.sceneFooter p { font-size: 13px; }
+.sceneFooter small { display: block; margin-top: 9px; font: 10px 'IBM Plex Mono', monospace; color: #565650; }
+.liveDot { display: inline-block; width: 6px; height: 6px; background: #383833; border-radius: 50%; margin-right: 6px; }
+.creditsFooter { display: flex; justify-content: space-between; margin: 0 3.5%; padding: 20px 0; border-top: 1px solid #2224; font: 10px 'IBM Plex Mono', monospace; }
+.sceneView .creditsFooter { position: absolute; bottom: 0; left: 0; right: 0; }
+.creditsFooter a { text-decoration: underline; text-underline-offset: 3px; }
+.loadingStatus { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); text-align: center; font: 13px 'IBM Plex Mono', monospace; }
+.loadingStatus span { display: block; margin-top: 10px; font-size: 10px; }
+.objectLabel { position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%); background: #242424; color: #fff; padding: 14px 20px; font: 12px 'IBM Plex Mono', monospace; pointer-events: none; box-shadow: 4px 4px 0 #fff8; white-space: nowrap; }
+.objectLabel span { margin-left: 20px; }
+.textView .siteHeader { position: sticky; top: 0; background: #eeede9f5; }
+.textSections { max-width: 1180px; margin: auto; padding: 0 5% 80px; }
+.contentSection { padding-top: 38px; margin-bottom: 70px; scroll-margin-top: 125px; }
+.sectionHeading { border-top: 1px solid #999; display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding-top: 15px; margin-bottom: 30px; }
+.sectionHeading h2, .dialogHeader h2 { font-size: 42px; font-weight: 500; letter-spacing: -.05em; text-transform: capitalize; margin: 0; }
+.cardTopline { display: flex; justify-content: space-between; gap: 20px; }
+.cardTopline h3 { margin: 0; font-size: 22px; }
+.cardTopline h3 span { display: block; margin-top: 8px; font-size: 15px; font-weight: 400; }
+.cardTopline > span { font: 12px 'IBM Plex Mono', monospace; }
+.sectionLead { color: #66665f; margin-top: 28px; }
+.experienceList, .creditsList { padding-left: 20px; }
+.experienceList li, .creditsList li { line-height: 1.8; margin-bottom: 16px; padding-left: 5px; }
+.projectGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.projectCard { display: flex; flex-direction: column; border: 1px solid #c1c1b9; background: #f7f7f2; padding: 24px; }
+.projectCard:hover { border-color: #333; box-shadow: 4px 4px 0 #d4d4ca; }
+.cardIndex, .cardLink { font: 11px 'IBM Plex Mono', monospace; }
+.projectCard h3 { margin: 25px 0 10px; font-size: 24px; font-weight: 500; letter-spacing: -.03em; }
+.projectCard p { font-size: 14px; line-height: 1.8; margin-bottom: 26px; }
+.cardLink { margin-top: auto; padding-top: 16px; border-top: 1px solid #cecec5; }
+.skillsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.skillsCard { padding: 22px; border: 1px solid #c1c1b9; }
+.skillsCard h4 { margin: 0; font-size: 16px; }
+.skillsCard p { margin-bottom: 0; color: #565650; line-height: 1.8; }
+.educationStrip { margin-top: 30px; border-left: 2px solid #333; padding-left: 22px; line-height: 1.7; }
+.contactBody { display: flex; gap: 30px; line-height: 1.8; }
+.contactBody img { width: 150px; height: 185px; object-fit: cover; filter: grayscale(1); }
+.contactBody h3 { margin-top: 0; }
+.contactBody a, .creditsList a, .dialogContent > p a { text-decoration: underline; text-underline-offset: 3px; }
+.socialLinks { display: flex; gap: 24px; margin-top: 25px; font: 12px 'IBM Plex Mono', monospace; }
+.sectionDialog { width: min(940px, calc(100% - 64px)); max-height: calc(100svh - 80px); padding: 0; border: 1px solid #777; color: #242424; background: #eeede9; box-shadow: 12px 12px 0 #1114; }
+.sectionDialog[open] { display: flex; flex-direction: column; }
+.sectionDialog::backdrop { background: #1119; backdrop-filter: blur(5px); }
+.dialogHeader { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px 32px; border-bottom: 1px solid #bbb; flex-shrink: 0; }
+.dialogHeader button { font: 12px 'IBM Plex Mono', monospace; }
+.dialogContent { overflow-y: auto; overscroll-behavior: contain; padding: 32px; }
+.errorNotice { max-width: 1000px; margin: 25px auto; padding: 25px; border: 1px solid #999; line-height: 1.8; }
+.errorNotice button { margin-left: 15px; }
+@media (max-width: 1050px) {
+  .monogram span { display: none; }
+  .siteHeader { gap: 14px; }
+  .siteHeader nav { gap: 16px; }
+  .siteHeader nav small { display: none; }
+  .sceneView .intro h1 { font-size: 34px; }
 }
-
-/* Keep fragment targets visible below the fixed navigation. */
-html {
-	scroll-behavior: smooth;
-}
-
-#experience,
-#skills,
-#projects,
-#education,
-#about {
-	scroll-margin-block-start: var(--fragment-scroll-offset);
-}
-
-.heroTitle,
-.sectionTitle{
-	color: #fff;
-	text-align: center;
-}
-.hero > p{
-	font-size: 1.65rem;
-}
-.name{
-	font-size: 50px;
-}
-.name > span{
-	display: block;
-}
-.emoji{
-	display: inline-block;
-	animation: rotate 1s infinite;
-	margin-left: 0.5rem;
-}
-@keyframes rotate{
-	0%{
-		transform: rotate(-10deg);
-	}
-	50%{
-		transform: rotate(10deg);
-	}
-	100%{
-		transform: rotate(-10deg);
-	}
-}
-
-.contentSection {
-	padding: 2rem 10% 0;
-	color: #fff;
-}
-
-.projectsSection {
-	padding-top: 2rem;
-}
-
-.projectGrid {
-	display: flex;
-	justify-content: center;
-	flex-wrap: wrap;
-	--project-card-width: 35ch;
-	margin-top: 1.5rem;
-	margin-bottom: 0;
-	gap: 2em;
-	padding: 0 10%;
-	line-height: 1.6rem;
-}
-
-.projectGrid > .projectCard {
-	display: inline-block;
-	width: var(--project-card-width);
-	/* Keep the established card proportion without constraining its content. */
-	min-height: calc(var(--project-card-width) * 4 / 3);
-	padding: 0 2%;
-	color: #fff;
-	overflow-wrap: anywhere;
-}
-
-.projectGrid > .projectCard:hover {
-	transform: scale(1.07);
-}
-
-.contentSection > .sectionTitle,
-.projectsSection > .sectionTitle {
-	margin: 0;
-}
-
-.skillsGrid {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(260px, 1fr));
-	gap: 1.25rem;
-	max-width: 980px;
-	margin: 1.5rem auto 0;
-}
-
-.skillsCard,
-.textCard {
-	background: rgba(255, 255, 255, 0.15);
-	border: 2px solid rgba(255, 255, 255, 0.32);
-	backdrop-filter: blur(36.5px);
-	-webkit-backdrop-filter: blur(36.5px);
-	border-radius: 20px;
-	box-shadow: 0 0 5px 5px rgb(0 0 0 / 0.2);
-	padding: 1.25rem 1.35rem;
-}
-
-.skillsCard > h3,
-.textCard > h3 {
-	margin: 0;
-}
-
-.skillsCard > p {
-	margin-bottom: 0;
-	line-height: 1.6;
-}
-
-.textCard {
-	max-width: 980px;
-	margin: 1.5rem auto 0;
-}
-
-.textCard > span {
-	opacity: 0.85;
-	display: inline-block;
-	margin-top: 0.25rem;
-}
-
-.textCard > p {
-	margin: 0.85rem 0 0;
-	opacity: 0.9;
-}
-
-.textCard ul {
-	margin-top: 1rem;
-	padding-left: 1.1rem;
-	display: grid;
-	gap: 0.65rem;
-}
-
-.textCard li {
-	line-height: 1.6;
-}
-
-#education .textCard,
-#experience .textCard {
-	padding: 1.25rem 1.35rem;
-}
-
-#education .textCard > ul,
-#experience .textCard > ul {
-	margin-top: 0.9rem;
-	padding-left: 1.1rem;
-}
-
-@media(max-width: 740px){
-	.skillsGrid {
-		grid-template-columns: 1fr;
-	}
-
-	.contentSection {
-		padding: 1.5rem 1rem 0;
-	}
-
-	.projectsSection {
-		padding-top: 1.5rem;
-	}
-
-	.name{
-		font-size: 42px;
-	}
-
-	.hero > p {
-		font-size: 1.3rem;
-	}
-}
-@media(max-width: 936px){
-	.slider{
-		overflow-y: hidden;
-		scrollbar-width: none;
-	}
-	.slider::-webkit-scrollbar{
-		display:none;
-	}
-	.projectGrid{
-		width: fit-content;
-		flex-wrap: nowrap;
-		margin-top: 2rem;
-		gap: 1.5em;
-	}
-	.projectGrid > .projectCard:hover{
-		transform: none;
-	}
-}
-@media(max-width: 500px){
-	.hero{
-		padding-top: 25vh;
-		}
-	.projectGrid{
-		margin-top: 1rem;
-	}
-	.projectGrid > .projectCard{
-		padding: 0 20px;
-	}
-}
-@media(max-width: 400px){
-	.projectGrid > .projectCard{
-		--project-card-width: 30ch;
-	}
+@media (max-width: 767px) {
+  .siteHeader { flex-wrap: wrap; margin: 0 5%; padding: 17px 0 13px; gap: 15px; }
+  .siteHeader nav { order: 3; width: 100%; justify-content: space-between; gap: 10px; }
+  .siteHeader nav a { font-size: 11px; }
+  .intro { margin: 45px 6% 60px; }
+  .intro h1 { font-size: 45px; }
+  .sceneView { min-height: 600px; }
+  .sceneView .intro { top: 142px; left: 5%; }
+  .sceneView .intro h1 { font-size: 30px; margin: 12px 0 16px; }
+  .sceneView .intro .role, .sceneView .introSentence { font-size: 11px; }
+  .sceneStage { top: 235px; bottom: 100px; }
+  .sceneFooter { bottom: 57px; align-items: center; left: 5%; right: 5%; }
+  .sceneFooter p { font-size: 10px; }
+  .sceneFooter small { font-size: 8px; max-width: 185px; line-height: 1.6; }
+  .sceneFooter button { font-size: 10px; padding: 9px; }
+  .objectLabel { bottom: 0; font-size: 10px; }
+  .creditsFooter { font-size: 8px; }
+  .sectionHeading { display: block; }
+  .sectionHeading h2 { font-size: 35px; margin-top: 15px; }
+  .projectGrid, .skillsGrid { grid-template-columns: 1fr; }
+  .cardTopline { display: block; }
+  .cardTopline > span { display: block; margin-top: 15px; }
+  .contactBody { flex-direction: column; gap: 20px; }
+  .sectionDialog { width: 100%; height: 100svh; max-width: 100%; max-height: 100svh; margin: 0; border: none; }
+  .dialogHeader { padding: 20px; }
+  .dialogHeader h2 { font-size: 32px; }
+  .dialogContent { padding: 24px 20px; }
+  .errorNotice { margin: 20px; }
 }

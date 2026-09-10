@@ -1,0 +1,22 @@
+[
+  {
+    "name": "desk",
+    "bytes": 261044,
+    "triangles": 4472
+  },
+  {
+    "name": "books",
+    "bytes": 2304832,
+    "triangles": 50447
+  },
+  {
+    "name": "computer",
+    "bytes": 1653008,
+    "triangles": 61005
+  },
+  {
+    "name": "phone",
+    "bytes": 472408,
+    "triangles": 10310
+  }
+]

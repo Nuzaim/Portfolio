@@ -1,7 +1,8 @@
+import PropTypes from "prop-types";
 import { useState } from "react"
 import "./MobileNav.css"
 
-function mobileNav({ isVisible }) {
+function MobileNav({ isVisible }) {
   const [isNavToggle, setIsNavToggle] = useState(false);
   return (
     <>
@@ -24,4 +25,5 @@ function mobileNav({ isVisible }) {
   )
 }
 
-export default mobileNav;
+MobileNav.propTypes = { isVisible: PropTypes.bool };
+export default MobileNav;

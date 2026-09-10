@@ -1,37 +1,10 @@
-import { useEffect, useRef } from "react"
-import "./Navbar.css"
-import logo from "./assets/logo.png"
+import PropTypes from "prop-types";
+import "./Navbar.css";
 
-function Navbar(props) {
-	const navRef = useRef(null);
-
-	useEffect(() => {
-		const nav = navRef.current;
-		if (!nav || !window.ResizeObserver) return;
-
-		const updateOverflowState = () => {
-			props.onOverflowChange(nav.scrollWidth > nav.clientWidth);
-		};
-
-		const observer = new ResizeObserver(updateOverflowState);
-		observer.observe(nav);
-		updateOverflowState();
-
-		return () => observer.disconnect();
-	}, [props.onOverflowChange]);
-
-	return (
-		<nav ref={navRef} className={`portfolioNav${props.scroll ? " scrolled" : ""}${props.isMobileMode ? " mobile-mode" : ""}`} >
-			<img src={logo} alt="Logo" />
-			<ul>
-				<li> <a href="#">Home</a> </li>
-				<li> <a href="#experience">Experience</a> </li>
-				<li> <a href="#skills">Skills</a> </li>
-				<li> <a href="#projects">Personal</a> </li>
-				<li> <a href="#about">About</a> </li>
-			</ul>
-		</nav >
-	)
+export default function Navbar({ scroll }) {
+  return <nav className={`portfolioNav${scroll ? " scrolled" : ""}`} aria-label="Main navigation">
+    <a className="navBrand" href="#top" aria-label="Nuzaim — home">N<span> / </span>T</a>
+    <ul>{[["Home", "top"], ["Experience", "experience"], ["Knowledge", "knowledge"], ["Projects", "projects"], ["Contact", "contact"]].map(([label, id]) => <li key={id}><a href={`#${id}`}>{label}</a></li>)}</ul>
+  </nav>;
 }
-
-export default Navbar;
+Navbar.propTypes = { scroll: PropTypes.bool };
