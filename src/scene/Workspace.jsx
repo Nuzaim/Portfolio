@@ -2,13 +2,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Box3, Color, Group, Vector3 } from 'three';
+import { Box3, BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const origin = [7.6, 6.2, 9.2];
-const target = [0, 1.7, 0];
-const labels = { experience: 'Monitor / Experience', projects: 'Computer hardware / Projects', knowledge: 'Books / Knowledge', contact: 'Telephone / Contact' };
+const origin = [9, 7.5, 12];
+const target = [.8, 2, 0];
+const labels = { experience: 'Laptop / Experience', projects: 'Server rack / Projects', knowledge: 'Exercise books / Knowledge', contact: 'Smartphone / Contact' };
+const labelAnchors = [
+  { section: 'experience', text: 'Experience', point: [-.35, 3.55, -.5], offset: [0, -45] },
+  { section: 'projects', text: 'Projects', point: [4.3, 4.5, -1.15], offset: [0, -36] },
+  { section: 'knowledge', text: 'Knowledge', point: [-1.95, 3.22, .32], offset: [-76, -26] },
+  { section: 'contact', text: 'Contact', point: [.95, 2.76, .45], offset: [0, 60] },
+];
 
 function disposeModels(models) {
   const geometries = new Set(), materials = new Set(), textures = new Set();
@@ -32,7 +38,7 @@ function Controls({ paused, reset, reduced, onFailure }) {
     controls.connect();
     controls.enablePan = false;
     controls.minDistance = 6.5;
-    controls.maxDistance = 16;
+    controls.maxDistance = 28;
     controls.minPolarAngle = .3;
     controls.maxPolarAngle = Math.PI / 2 - .2;
     controls.addEventListener('change', invalidate);
@@ -51,7 +57,7 @@ function Controls({ paused, reset, reduced, onFailure }) {
   }, [controls, paused, reduced, visible, invalidate]);
   useEffect(() => {
     const center = new Vector3(...target);
-    const fit = Math.min(1.22, Math.max(1, .95 / (size.width / size.height)));
+    const fit = Math.min(1.8, Math.max(1, 1.15 / (size.width / size.height)));
     camera.position.set(...origin).sub(center).multiplyScalar(fit).add(center);
     controls.target.copy(center); controls.update(); invalidate();
   }, [camera, controls, reset, invalidate, size.width, size.height]);
@@ -59,6 +65,32 @@ function Controls({ paused, reset, reduced, onFailure }) {
   return null;
 }
 Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func };
+
+function InteractiveLabels({ onUpdate }) {
+  const { camera, size } = useThree();
+  const point = useMemo(() => new Vector3(), []);
+  const previous = useRef([]);
+  useFrame(() => {
+    const next = labelAnchors.map(({ section, text, point: anchor, offset }, index) => {
+      point.set(...anchor).project(camera);
+      const x = (point.x + 1) * size.width / 2, y = (-point.y + 1) * size.height / 2;
+      const width = size.width < 768 ? 94 : 116;
+      const labelX = Math.max(width / 2 + 8, Math.min(size.width - width / 2 - 8, x + offset[0]));
+      const labelY = y + offset[1];
+      const dx = labelX - x, dy = labelY - y;
+      // Stop the leader at the label border, keeping the full route under 60px.
+      const edge = Math.min(width / 2 / Math.abs(dx), 12 / Math.abs(dy));
+      return { section, text, number: index + 1, x, y, labelX, labelY, endX: labelX - dx * edge, endY: labelY - dy * edge, visible: point.z > -1 && point.z < 1 };
+    });
+    const changed = next.some((item, index) => {
+      const last = previous.current[index];
+      return !last || last.visible !== item.visible || Math.abs(last.x - item.x) > .5 || Math.abs(last.y - item.y) > .5;
+    });
+    if (changed) { previous.current = next; onUpdate(next); }
+  });
+  return null;
+}
+InteractiveLabels.propTypes = { onUpdate: PropTypes.func.isRequired };
 
 function Model({ object, section, onSelect, onHover, paused, gesture }) {
   const [hovered, setHovered] = useState(false);
@@ -83,15 +115,19 @@ function Model({ object, section, onSelect, onHover, paused, gesture }) {
 Model.propTypes = { object: PropTypes.object.isRequired, section: PropTypes.string, onSelect: PropTypes.func, onHover: PropTypes.func, paused: PropTypes.bool, gesture: PropTypes.object };
 
 function assemble(scenes) {
-  const normalize = (object, width, position) => {
+  // Polyfork assets are authored in metres; preserve their relative dimensions.
+  // A 1.6 m desk spans six scene units.
+  const worldScale = 6 / 1.6;
+  const place = (object, position, rotation = [0, 0, 0]) => {
+    object.rotation.set(...rotation);
+    object.updateMatrixWorld(true);
     const box = new Box3().setFromObject(object);
     const size = box.getSize(new Vector3());
-    const scale = width / size.x;
     const centered = new Group();
     centered.add(object);
     object.position.add(new Vector3(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2));
-    centered.scale.setScalar(scale); centered.position.set(...position);
-    return { group: centered, height: size.y * scale };
+    centered.scale.setScalar(worldScale); centered.position.set(...position);
+    return { group: centered, height: size.y * worldScale };
   };
   scenes.forEach(scene => scene.traverse(node => {
     if (node.isMesh) {
@@ -103,27 +139,39 @@ function assemble(scenes) {
       }
     }
   }));
-  const desk = normalize(scenes[0], 6, [0, 0, 0]);
-  const computer = normalize(scenes[2], 2.05, [-.1, desk.height, -.05]).group;
-  const monitor = new Group(), hardware = new Group();
-  // Preserve the authored transforms while separating semantic hit targets.
-  for (const node of [...scenes[2].children]) {
-    if (['Main_Computer', 'Main Computer', 'Screen', 'Glass', 'Power_Button', 'Power Button', 'Button1', 'Button2'].includes(node.name)) monitor.add(node);
-    else hardware.add(node);
-  }
-  monitor.position.copy(scenes[2].position);
-  hardware.position.copy(scenes[2].position);
-  computer.remove(scenes[2]);
-  computer.add(monitor, hardware);
-  const books = normalize(scenes[1], 1.25, [-1.98, desk.height, -.18]).group;
-  const phone = normalize(scenes[3], .9, [1.93, desk.height, .32]).group;
-  phone.rotation.y = -.22;
-  return { desk: desk.group, computer, monitor, hardware, books, phone };
+  // Keep the book covers distinct, with quieter colours that suit the workspace.
+  scenes[3].traverse(node => {
+    const colors = node.geometry?.getAttribute('color');
+    if (!colors) return;
+    const color = new Color();
+    for (let i = 0; i < colors.count; i++) {
+      color.fromBufferAttribute(colors, i);
+      const neutral = .2126 * color.r + .7152 * color.g + .0722 * color.b;
+      color.lerp(new Color(neutral, neutral, neutral), .45);
+      colors.setXYZ(i, color.r, color.g, color.b);
+    }
+    colors.needsUpdate = true;
+  });
+  const desk = place(scenes[0], [0, 0, 0]);
+  const mat = new Mesh(new BoxGeometry(2.65, .018, 1.58), new MeshStandardMaterial({ color: '#8d9287', roughness: 1 }));
+  mat.position.set(-.08, desk.height + .009, .18);
+  mat.receiveShadow = true;
+  const laptop = place(scenes[1], [-.35, desk.height + .018, -.12]).group;
+  const serverRack = place(scenes[2], [4.3, 0, -1.15]).group;
+  const books = place(scenes[3], [-1.95, desk.height, .32], [0, -.12, 0]).group;
+  // Rotate before measuring bounds so the screen faces up and the back rests
+  // on the desktop, regardless of the model's original upright pivot.
+  const phone = place(scenes[4], [.95, desk.height + .021, .45], [-Math.PI / 2, 0, -.18]).group;
+  const plant = place(scenes[5], [2.08, desk.height, -.7], [0, .35, 0]).group;
+  const lamp = place(scenes[6], [-2.2, desk.height, -.85], [0, Math.PI / 2, 0]).group;
+  const mug = place(scenes[7], [1.82, desk.height, .64], [0, -.6, 0]).group;
+  return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug };
 }
 
 export default function Workspace({ paused, reset, onSelect, onFailure }) {
   const [models, setModels] = useState(null);
   const [hover, setHover] = useState(null);
+  const [labelPositions, setLabelPositions] = useState([]);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const gesture = useRef({ moved: false, points: new Set(), x: 0, y: 0 });
   useEffect(() => {
@@ -136,11 +184,21 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
     let cancelled = false;
     let loaded = [];
     const loader = new GLTFLoader();
-    Promise.allSettled(['desk', 'books', 'computer', 'phone'].map(name => loader.loadAsync(`${import.meta.env.BASE_URL}models/optimized/${name}.glb`))).then(results => {
+    const assets = [
+      ['desk', 'models/polyfork/sit-stand-desk.glb'],
+      ['laptop', 'models/polyfork/laptop.glb'],
+      ['serverRack', 'models/polyfork/server-rack.glb'],
+      ['books', 'models/polyfork/exercise-books.glb'],
+      ['phone', 'models/polyfork/smartphone.glb'],
+      ['plant', 'models/decor/plant.glb'],
+      ['lamp', 'models/decor/lamp.glb'],
+      ['mug', 'models/decor/mug.glb']
+    ];
+    Promise.allSettled(assets.map(([, path]) => loader.loadAsync(`${import.meta.env.BASE_URL}${path}`))).then(results => {
       loaded = results.filter(result => result.status === 'fulfilled').map(result => result.value.scene);
       if (cancelled || results.some(result => result.status === 'rejected')) { disposeModels(loaded); if (!cancelled) onFailure(); return; }
       const assembled = assemble(loaded);
-      loaded = [assembled.desk, assembled.computer, assembled.books, assembled.phone];
+      loaded = Object.values(assembled);
       setModels(assembled);
     }).catch(() => { disposeModels(loaded); if (!cancelled) onFailure(); });
     return () => { cancelled = true; disposeModels(loaded); };
@@ -155,20 +213,27 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
     onPointerMoveCapture={event => { const state = gesture.current; if (state.points.size && Math.hypot(event.clientX - state.x, event.clientY - state.y) > 5) state.moved = true; }}
     onPointerUpCapture={event => gesture.current.points.delete(event.pointerId)}
     onPointerCancelCapture={event => { gesture.current.points.delete(event.pointerId); gesture.current.moved = true; }}>
-    {!models ? <p className="loadingStatus" role="status">Unpacking the desk…<span>Loading four local 3D models</span></p> : <Canvas shadows dpr={[1, 1.5]} frameloop="demand" camera={{ position: origin, fov: 38, near: .1, far: 60 }} gl={{ antialias: true, powerPreference: 'low-power' }} fallback="Use Text view to read the portfolio.">
+    {!models ? <p className="loadingStatus" role="status">Unpacking the office…<span>Arranging the workspace</span></p> : <Canvas shadows dpr={[1, 1.5]} frameloop="demand" camera={{ position: origin, fov: 38, near: .1, far: 60 }} gl={{ antialias: true, powerPreference: 'low-power' }} fallback="Use Text view to read the portfolio.">
       <color attach="background" args={['#d2d2ce']} /><fog attach="fog" args={['#d2d2ce', 20, 40]} />
-      <ambientLight intensity={1.3} /><hemisphereLight args={['#ffffff', '#757570', 1.2]} />
-      <directionalLight position={[-4, 9, 5]} intensity={3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-6} shadow-camera-right={6} shadow-camera-top={6} shadow-camera-bottom={-6} shadow-bias={-.0003} shadow-normalBias={.03} shadow-radius={3} />
+      <ambientLight intensity={1.5} /><hemisphereLight args={['#ffffff', '#757570', 1.2]} />
+      <directionalLight position={[-3, 12, 6]} intensity={2.2} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-.0003} shadow-normalBias={.015} shadow-radius={4} />
       <Controls paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} />
+      <InteractiveLabels onUpdate={setLabelPositions} />
       <primitive object={models.desk} />
-      <primitive object={models.computer}>
-        <Model object={models.monitor} section="experience" {...{ onSelect, paused, gesture }} onHover={setHover} />
-        <Model object={models.hardware} section="projects" {...{ onSelect, paused, gesture }} onHover={setHover} />
-      </primitive>
+      <primitive object={models.mat} />
+      <primitive object={models.plant} />
+      <primitive object={models.lamp} />
+      <primitive object={models.mug} />
+      <Model object={models.laptop} section="experience" {...{ onSelect, paused, gesture }} onHover={setHover} />
+      <Model object={models.serverRack} section="projects" {...{ onSelect, paused, gesture }} onHover={setHover} />
       <Model object={models.books} section="knowledge" {...{ onSelect, paused, gesture }} onHover={setHover} />
       <Model object={models.phone} section="contact" {...{ onSelect, paused, gesture }} onHover={setHover} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.025, 0]} receiveShadow><planeGeometry args={[100, 100]} /><meshStandardMaterial color="#c5c5c0" roughness={1} /></mesh>
     </Canvas>}
+    {!paused && <div className="sceneAnnotations" aria-hidden="true">
+      <svg className="sceneLeaders">{labelPositions.filter(item => item.visible).map(({ section, x, y, endX, endY }) => <g key={section}><line x1={x} y1={y} x2={endX} y2={endY} /><circle cx={x} cy={y} r="2" /></g>)}</svg>
+      {labelPositions.filter(item => item.visible).map(({ section, text, number, labelX, labelY }) => <span key={section} className="sceneObjectLabel" style={{ transform: `translate(${labelX}px, ${labelY}px)` }}><small>{String(number).padStart(2, '0')}</small>{text}<b>↗</b></span>)}
+    </div>}
     {hover && !paused && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
   </div>;
 }

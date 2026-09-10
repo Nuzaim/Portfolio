@@ -38,6 +38,13 @@ button:focus-visible, a:focus-visible { outline: 3px solid #555; outline-offset:
 .loadingStatus span { display: block; margin-top: 10px; font-size: 10px; }
 .objectLabel { position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%); background: #242424; color: #fff; padding: 14px 20px; font: 12px 'IBM Plex Mono', monospace; pointer-events: none; box-shadow: 4px 4px 0 #fff8; white-space: nowrap; }
 .objectLabel span { margin-left: 20px; }
+.sceneAnnotations { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sceneLeaders { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sceneLeaders line { stroke: #45453f; stroke-width: 1; }
+.sceneLeaders circle { fill: #45453f; }
+.sceneObjectLabel { position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; box-sizing: border-box; width: 116px; height: 24px; padding: 5px 7px; border: 1px solid #25252599; background: #eeede9; color: #252525; font: 10px 'IBM Plex Mono', monospace; letter-spacing: .02em; pointer-events: none; white-space: nowrap; translate: -50% -50%; box-shadow: 2px 2px 0 #fff8; }
+.sceneObjectLabel small { font: inherit; color: #686860; }
+.sceneObjectLabel b { margin-left: 5px; font: inherit; }
 .textView .siteHeader { position: sticky; top: 0; background: #eeede9f5; }
 .textSections { max-width: 1180px; margin: auto; padding: 0 5% 80px; }
 .contentSection { padding-top: 38px; margin-bottom: 70px; scroll-margin-top: 125px; }
@@ -63,7 +70,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #555; outline-offset:
 .skillsCard p { margin-bottom: 0; color: #565650; line-height: 1.8; }
 .educationStrip { margin-top: 30px; border-left: 2px solid #333; padding-left: 22px; line-height: 1.7; }
 .contactBody { display: flex; gap: 30px; line-height: 1.8; }
-.contactBody img { width: 150px; height: 185px; object-fit: cover; filter: grayscale(1); }
+.contactBody img { width: 150px; height: 185px; object-fit: cover; }
 .contactBody h3 { margin-top: 0; }
 .contactBody a, .creditsList a, .dialogContent > p a { text-decoration: underline; text-underline-offset: 3px; }
 .socialLinks { display: flex; gap: 24px; margin-top: 25px; font: 12px 'IBM Plex Mono', monospace; }
@@ -98,6 +105,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #555; outline-offset:
   .sceneFooter small { font-size: 8px; max-width: 185px; line-height: 1.6; }
   .sceneFooter button { font-size: 10px; padding: 9px; }
   .objectLabel { bottom: 0; font-size: 10px; }
+  .sceneObjectLabel { width: 94px; font-size: 8px; padding: 4px 5px; }
   .creditsFooter { font-size: 8px; }
   .sectionHeading { display: block; }
   .sectionHeading h2 { font-size: 35px; margin-top: 15px; }

@@ -99,7 +99,7 @@ export const experienceHighlights = [
 	"Led the migration of 600+ customer-facing API services from Mesosphere DC/OS to HashiCorp Nomad within two months with minimal downtime.",
 	"Maintained and enhanced a centralized scraping management platform for scraper configuration lifecycle management and proxy health monitoring, reducing proxy-related costs by over 50% through improved proxy selection and utilization.",
 	"Implemented Redis Pub/Sub-based event propagation to synchronize configuration changes across distributed scraping services in real time.",
-	"Developed pytest end-to-end tests and implemented Prometheus, Grafana, and Elasticsearch tooling for workflow validation and observability."
+	"Improved workflow validation, monitoring, and observability across distributed systems and developed end-to-end tests."
 ];
 
 export const education = [

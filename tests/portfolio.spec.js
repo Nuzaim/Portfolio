@@ -28,10 +28,10 @@ test('all four physical props select content, orbit does not click, and reset re
   const canvas = page.locator('canvas[data-ready]');
   await expect(canvas).toBeVisible();
   const targets = [
-    { id: 'experience', x: 665, y: 315 },
-    { id: 'projects', x: 657, y: 442 },
-    { id: 'knowledge', x: 566, y: 386 },
-    { id: 'contact', x: 873, y: 425 },
+    { id: 'experience', x: 675, y: 400 },
+    { id: 'projects', x: 1020, y: 500 },
+    { id: 'knowledge', x: 535, y: 415 },
+    { id: 'contact', x: 709, y: 470 },
   ];
   for (const { id, x, y } of targets) {
     await page.mouse.move(x, y);
@@ -45,7 +45,7 @@ test('all four physical props select content, orbit does not click, and reset re
   }
   await page.mouse.move(1300, 500);
   const initial = await canvas.screenshot({ path: 'test-results/camera-initial.png' });
-  await page.mouse.move(665, 315);
+  await page.mouse.move(675, 400);
   await page.mouse.down();
   await page.mouse.move(900, 420, { steps: 12 });
   await page.mouse.up();
@@ -116,11 +116,11 @@ test('direct legacy fragment opens accessible scene dialog', async ({ page }) =>
 });
 
 test('missing assets fall back to text and retry recovers', async ({ page }) => {
-  await page.route('**/models/optimized/books.glb', route => route.abort());
+  await page.route('**/models/polyfork/exercise-books.glb', route => route.abort());
   await page.goto('/');
   await expect(page.getByText('The 3D workspace could not be displayed.', { exact: false })).toBeVisible();
   await expect(page.locator('#experience')).toBeVisible();
-  await page.unroute('**/models/optimized/books.glb');
+  await page.unroute('**/models/polyfork/exercise-books.glb');
   await page.getByRole('button', { name: 'Retry 3D' }).click();
   await expect(page.locator('canvas[data-ready]')).toBeVisible();
 });
