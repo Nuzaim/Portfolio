@@ -114,7 +114,7 @@ function Model({ object, section, onSelect, onHover, paused, gesture }) {
 }
 Model.propTypes = { object: PropTypes.object.isRequired, section: PropTypes.string, onSelect: PropTypes.func, onHover: PropTypes.func, paused: PropTypes.bool, gesture: PropTypes.object };
 
-function assemble(scenes) {
+function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRackScene, books: booksScene, phone: phoneScene, plant: plantScene, lamp: lampScene, mug: mugScene, chair: chairScene }) {
   // Polyfork assets are authored in metres; preserve their relative dimensions.
   // A 1.6 m desk spans six scene units.
   const worldScale = 6 / 1.6;
@@ -129,7 +129,7 @@ function assemble(scenes) {
     centered.scale.setScalar(worldScale); centered.position.set(...position);
     return { group: centered, height: size.y * worldScale };
   };
-  scenes.forEach(scene => scene.traverse(node => {
+  [deskScene, laptopScene, serverRackScene, booksScene, phoneScene, plantScene, lampScene, mugScene, chairScene].forEach(scene => scene.traverse(node => {
     if (node.isMesh) {
       node.castShadow = true; node.receiveShadow = true;
       for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -140,7 +140,7 @@ function assemble(scenes) {
     }
   }));
   // Keep the book covers distinct, with quieter colours that suit the workspace.
-  scenes[3].traverse(node => {
+  booksScene.traverse(node => {
     const colors = node.geometry?.getAttribute('color');
     if (!colors) return;
     const color = new Color();
@@ -152,20 +152,22 @@ function assemble(scenes) {
     }
     colors.needsUpdate = true;
   });
-  const desk = place(scenes[0], [0, 0, 0]);
+  const desk = place(deskScene, [0, 0, 0]);
   const mat = new Mesh(new BoxGeometry(2.65, .018, 1.58), new MeshStandardMaterial({ color: '#8d9287', roughness: 1 }));
   mat.position.set(-.08, desk.height + .009, .18);
   mat.receiveShadow = true;
-  const laptop = place(scenes[1], [-.35, desk.height + .018, -.12]).group;
-  const serverRack = place(scenes[2], [4.3, 0, -1.15]).group;
-  const books = place(scenes[3], [-1.95, desk.height, .32], [0, -.12, 0]).group;
+  const laptop = place(laptopScene, [-.35, desk.height + .018, -.12]).group;
+  const serverRack = place(serverRackScene, [4.3, 0, -1.15]).group;
+  const books = place(booksScene, [-1.95, desk.height, .32], [0, -.12, 0]).group;
   // Rotate before measuring bounds so the screen faces up and the back rests
   // on the desktop, regardless of the model's original upright pivot.
-  const phone = place(scenes[4], [.95, desk.height + .021, .45], [-Math.PI / 2, 0, -.18]).group;
-  const plant = place(scenes[5], [2.08, desk.height, -.7], [0, .35, 0]).group;
-  const lamp = place(scenes[6], [-2.2, desk.height, -.85], [0, Math.PI / 2, 0]).group;
-  const mug = place(scenes[7], [1.82, desk.height, .64], [0, -.6, 0]).group;
-  return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug };
+  const phone = place(phoneScene, [.95, desk.height + .021, .45], [-Math.PI / 2, 0, -.18]).group;
+  const plant = place(plantScene, [2.08, desk.height, -.7], [0, .35, 0]).group;
+  const lamp = place(lampScene, [-2.2, desk.height, -.85], [0, Math.PI / 2, 0]).group;
+  const mug = place(mugScene, [1.82, desk.height, .64], [0, -.6, 0]).group;
+  // The source faces the opposite direction; turn it toward the desk.
+  const chair = place(chairScene, [0, 0, 2.1], [0, Math.PI, 0]).group;
+  return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug, chair };
 }
 
 export default function Workspace({ paused, reset, onSelect, onFailure }) {
@@ -192,12 +194,14 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
       ['phone', 'models/polyfork/smartphone.glb'],
       ['plant', 'models/decor/plant.glb'],
       ['lamp', 'models/decor/lamp.glb'],
-      ['mug', 'models/decor/mug.glb']
+      ['mug', 'models/decor/mug.glb'],
+      ['chair', 'models/decor/chairDesk.glb']
     ];
     Promise.allSettled(assets.map(([, path]) => loader.loadAsync(`${import.meta.env.BASE_URL}${path}`))).then(results => {
       loaded = results.filter(result => result.status === 'fulfilled').map(result => result.value.scene);
       if (cancelled || results.some(result => result.status === 'rejected')) { disposeModels(loaded); if (!cancelled) onFailure(); return; }
-      const assembled = assemble(loaded);
+      const scenes = Object.fromEntries(results.map((result, index) => [assets[index][0], result.value.scene]));
+      const assembled = assemble(scenes);
       loaded = Object.values(assembled);
       setModels(assembled);
     }).catch(() => { disposeModels(loaded); if (!cancelled) onFailure(); });
@@ -224,6 +228,7 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
       <primitive object={models.plant} />
       <primitive object={models.lamp} />
       <primitive object={models.mug} />
+      <primitive object={models.chair} />
       <Model object={models.laptop} section="experience" {...{ onSelect, paused, gesture }} onHover={setHover} />
       <Model object={models.serverRack} section="projects" {...{ onSelect, paused, gesture }} onHover={setHover} />
       <Model object={models.books} section="knowledge" {...{ onSelect, paused, gesture }} onHover={setHover} />

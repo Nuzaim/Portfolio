@@ -10,6 +10,7 @@ const assets = [
   { source: 'kenney-plantSmall2', name: 'plant', height: .3, colors: { wood: '#c2b29c', plant: '#67836a' } },
   { source: 'kenney-lampRoundTable', name: 'lamp', height: .42, colors: { metal: '#454b48', lamp: '#eee2c7' } },
   { source: 'kenney-cup', name: 'mug', height: .095, colors: { colormap: '#e8dfd0' } },
+  { source: 'kenney-chairDesk', name: 'chairDesk', height: .82, colors: { carpet: '#7f8880', metalMedium: '#59605f' } },
 ];
 
 await mkdir('public/models/decor', { recursive: true });

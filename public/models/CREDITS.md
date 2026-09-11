@@ -1,6 +1,6 @@
 # Workspace asset credits
 
-Downloaded September 10, 2026. The site loads five local Polyfork GLBs and three adapted Kenney GLBs.
+Downloaded September 11, 2026. The site loads five local Polyfork GLBs and four adapted Kenney GLBs.
 
 | File | Author | Source | License |
 | --- | --- | --- | --- |
@@ -12,8 +12,9 @@ Downloaded September 10, 2026. The site loads five local Polyfork GLBs and three
 | decor/plant.glb | Kenney | https://kenney.nl/assets/furniture-kit (`plantSmall2.glb`) | CC0 1.0 |
 | decor/lamp.glb | Kenney | https://kenney.nl/assets/furniture-kit (`lampRoundTable.glb`) | CC0 1.0 |
 | decor/mug.glb | Kenney | https://kenney.nl/assets/food-kit (`cup.glb`) | CC0 1.0 |
+| decor/chairDesk.glb | Kenney | https://kenney.nl/assets/furniture-kit (`chairDesk.glb`) | CC0 1.0 |
 
-Kenney props are adapted to muted sage, stone, graphite, and warm ceramic colors. Their heights are normalized to 30 cm (plant), 42 cm (lamp), and 9.5 cm (mug). The desk mat is original scene geometry. License: https://creativecommons.org/publicdomain/zero/1.0/.
+Kenney props are adapted to muted sage, stone, graphite, and warm ceramic colors. Their heights are normalized to 30 cm (plant), 42 cm (lamp), 9.5 cm (mug), and 82 cm (chair). The desk mat is original scene geometry. License: https://creativecommons.org/publicdomain/zero/1.0/.
 
 Poly Haven license: https://polyhaven.com/license
 

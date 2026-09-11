@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { education, experienceHighlights, projects, skillGroups } from './content/portfolio';
-import portrait from './assets/Nuzaim_Noushad_Thappi.png';
+import portrait from './assets/IMG_9613.jpeg';
 
 export default function PortfolioContent({ section }) {
   if (section === 'experience') return <>
