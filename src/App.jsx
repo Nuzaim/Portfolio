@@ -19,6 +19,7 @@ export default function App() {
   const [section, setSection] = useState(readSection);
   const [attempt, setAttempt] = useState(0);
   const [reset, setReset] = useState(0);
+  const [zoomedIn, setZoomedIn] = useState(false);
   const [error, setError] = useState(false);
   const viewButton = useRef(null);
   // A fresh lazy wrapper also permits retrying a failed JS chunk download.
@@ -43,6 +44,7 @@ export default function App() {
     if (view === 'text' && next) document.getElementById(next)?.scrollIntoView({ behavior: 'instant' });
   };
   const chooseView = (next) => {
+    setZoomedIn(false);
     try { sessionStorage.setItem('portfolio-view', next); } catch { /* View still works without storage. */ }
     setView(next);
     if (next === 'scene') { setError(false); setAttempt(value => value + 1); setWorkspace(() => lazy(() => import('./scene/Workspace'))); window.scrollTo(0, 0); }
@@ -57,10 +59,10 @@ export default function App() {
       <button ref={viewButton} className="viewButton" onClick={() => chooseView(view === 'scene' ? 'text' : 'scene')}>{view === 'scene' ? 'Text view ↗' : 'Explore in 3D ↗'}</button>
     </header>
     <main id="top">
-      <div className="intro"><p className="eyebrow">Portfolio / 2026</p><h1>Nuzaim<br />Noushad Thappi<span>®</span></h1><p className="role">Software Engineer</p><p className="introSentence">Building resilient backend systems.</p></div>
+      <div className={`intro${view === 'scene' && zoomedIn ? ' isZoomedIn' : ''}`}><p className="eyebrow">Portfolio / 2026</p><h1>Nuzaim<br />Noushad Thappi<span>®</span></h1><p className="role">Software Engineer</p><p className="introSentence">Building resilient backend systems.</p></div>
       {view === 'scene' ? <>
         <div className="sceneStage" role="region" aria-label="Interactive 3D desk. Drag to orbit, scroll to zoom. Use section navigation for keyboard access.">
-          <SceneBoundary key={attempt} onFailure={fail}><Suspense fallback={<p className="loadingStatus" role="status">Opening the workspace…</p>}><Workspace paused={Boolean(dialogSection)} reset={reset} onSelect={navigate} onFailure={fail} /></Suspense></SceneBoundary>
+          <SceneBoundary key={attempt} onFailure={fail}><Suspense fallback={<p className="loadingStatus" role="status">Opening the workspace…</p>}><Workspace paused={Boolean(dialogSection)} reset={reset} onSelect={navigate} onFailure={fail} onZoomChange={setZoomedIn} /></Suspense></SceneBoundary>
         </div>
         <div className="sceneFooter"><p><span className="liveDot" /> A workspace, open to explore.<small>Drag to orbit · Scroll to zoom · Select an object</small></p><button onClick={() => setReset(value => value + 1)}>Reset view ↺</button></div>
       </> : <>

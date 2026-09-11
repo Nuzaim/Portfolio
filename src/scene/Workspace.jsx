@@ -29,9 +29,15 @@ function disposeModels(models) {
   geometries.forEach(item => item.dispose()); materials.forEach(item => item.dispose()); textures.forEach(item => item.dispose());
 }
 
-function Controls({ paused, reset, reduced, onFailure }) {
+function Controls({ paused, reset, reduced, onFailure, onZoomChange }) {
   const { camera, gl, invalidate, setFrameloop, size } = useThree();
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
+  const initialDistance = useRef(0);
+  useEffect(() => {
+    const updateZoom = () => onZoomChange(controls.getDistance() < initialDistance.current * .95);
+    controls.addEventListener('change', updateZoom);
+    return () => controls.removeEventListener('change', updateZoom);
+  }, [controls, onZoomChange]);
   const [visible, setVisible] = useState(!document.hidden);
   useEffect(() => {
     controls.domElement = gl.domElement;
@@ -59,12 +65,14 @@ function Controls({ paused, reset, reduced, onFailure }) {
     const center = new Vector3(...target);
     const fit = Math.min(1.8, Math.max(1, 1.15 / (size.width / size.height)));
     camera.position.set(...origin).sub(center).multiplyScalar(fit).add(center);
+    initialDistance.current = camera.position.distanceTo(center);
     controls.target.copy(center); controls.update(); invalidate();
-  }, [camera, controls, reset, invalidate, size.width, size.height]);
+    onZoomChange(false);
+  }, [camera, controls, reset, invalidate, size.width, size.height, onZoomChange]);
   useFrame(() => { if (controls.enabled) controls.update(); });
   return null;
 }
-Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func };
+Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func, onZoomChange: PropTypes.func.isRequired };
 
 function InteractiveLabels({ onUpdate }) {
   const { camera, size } = useThree();
@@ -170,7 +178,7 @@ function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRack
   return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug, chair };
 }
 
-export default function Workspace({ paused, reset, onSelect, onFailure }) {
+export default function Workspace({ paused, reset, onSelect, onFailure, onZoomChange }) {
   const [models, setModels] = useState(null);
   const [hover, setHover] = useState(null);
   const [labelPositions, setLabelPositions] = useState([]);
@@ -221,7 +229,7 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
       <color attach="background" args={['#d2d2ce']} /><fog attach="fog" args={['#d2d2ce', 20, 40]} />
       <ambientLight intensity={1.5} /><hemisphereLight args={['#ffffff', '#757570', 1.2]} />
       <directionalLight position={[-3, 12, 6]} intensity={2.2} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-.0003} shadow-normalBias={.015} shadow-radius={4} />
-      <Controls paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} />
+      <Controls paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} onZoomChange={onZoomChange} />
       <InteractiveLabels onUpdate={setLabelPositions} />
       <primitive object={models.desk} />
       <primitive object={models.mat} />
@@ -242,4 +250,4 @@ export default function Workspace({ paused, reset, onSelect, onFailure }) {
     {hover && !paused && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
   </div>;
 }
-Workspace.propTypes = { paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired };
+Workspace.propTypes = { paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired, onZoomChange: PropTypes.func.isRequired };
