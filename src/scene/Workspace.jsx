@@ -1,8 +1,9 @@
 /* eslint-disable react/no-unknown-property */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import LaptopTerminal from './LaptopTerminal';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Box3, BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { Box3, BoxGeometry, CanvasTexture, Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -29,16 +30,20 @@ function disposeModels(models) {
   geometries.forEach(item => item.dispose()); materials.forEach(item => item.dispose()); textures.forEach(item => item.dispose());
 }
 
-function Controls({ paused, reset, reduced, onFailure, onZoomChange }) {
+function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, terminalOpen, onCameraReady }) {
   const { camera, gl, invalidate, setFrameloop, size } = useThree();
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
   const initialDistance = useRef(0);
+  const movement = useRef(null);
+  const initialized = useRef(false);
   useEffect(() => {
     const updateZoom = () => onZoomChange(controls.getDistance() < initialDistance.current * .95);
     controls.addEventListener('change', updateZoom);
     return () => controls.removeEventListener('change', updateZoom);
   }, [controls, onZoomChange]);
   const [visible, setVisible] = useState(!document.hidden);
+  const orbitAllowed = useRef(false);
+  orbitAllowed.current = !terminalOpen && !paused && visible;
   useEffect(() => {
     controls.domElement = gl.domElement;
     controls.connect();
@@ -57,22 +62,63 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange }) {
     return () => { delete gl.domElement.dataset.ready; controls.dispose(); controls.removeEventListener('change', invalidate); gl.domElement.removeEventListener('webglcontextlost', lost); document.removeEventListener('visibilitychange', visibility); };
   }, [controls, gl, invalidate, setFrameloop, onFailure]);
   useEffect(() => {
-    controls.enabled = !paused && visible;
+    controls.enabled = !paused && !terminalOpen && visible && !movement.current;
     controls.enableDamping = !reduced && !paused;
     invalidate();
-  }, [controls, paused, reduced, visible, invalidate]);
+  }, [controls, paused, terminalOpen, reduced, visible, invalidate]);
   useEffect(() => {
     const center = new Vector3(...target);
+    const up = new Vector3(0, 1, 0);
     const fit = Math.min(1.8, Math.max(1, 1.15 / (size.width / size.height)));
-    camera.position.set(...origin).sub(center).multiplyScalar(fit).add(center);
-    initialDistance.current = camera.position.distanceTo(center);
-    controls.target.copy(center); controls.update(); invalidate();
-    onZoomChange(false);
-  }, [camera, controls, reset, invalidate, size.width, size.height, onZoomChange]);
-  useFrame(() => { if (controls.enabled) controls.update(); });
+    const position = new Vector3(...origin).sub(center).multiplyScalar(fit).add(center);
+    initialDistance.current = position.distanceTo(center);
+    if (terminalOpen && laptop) {
+      laptop.updateWorldMatrix(true, true);
+      const lid = laptop.getObjectByName('lid');
+      center.copy(lid.localToWorld(new Vector3(0, -.005, .1045)));
+      up.set(0, 0, 1).transformDirection(lid.matrixWorld);
+      const normal = new Vector3(0, -1, 0).transformDirection(lid.matrixWorld);
+      const aspect = size.width / size.height;
+      const distance = Math.max(.181 * 3.75, .288 * 3.75 / aspect) / (2 * Math.tan(camera.fov * Math.PI / 360)) * 1.35;
+      position.copy(center).addScaledVector(normal, distance);
+    }
+    onCameraReady(false);
+    controls.enabled = false;
+    // Retarget from the current pose, including when navigation interrupts a move.
+    if (reduced || !initialized.current) {
+      movement.current = null;
+      camera.position.copy(position); camera.up.copy(up); controls.target.copy(center);
+      camera.lookAt(center);
+      if (!terminalOpen) controls.update();
+      controls.enabled = orbitAllowed.current;
+      onCameraReady(true);
+    } else {
+      movement.current = { elapsed: 0, from: camera.position.clone(), fromTarget: controls.target.clone(), fromUp: camera.up.clone(), position, center, up };
+    }
+    initialized.current = true;
+    onZoomChange(terminalOpen); invalidate();
+  }, [camera, controls, reset, invalidate, size.width, size.height, onZoomChange, laptop, terminalOpen, reduced, onCameraReady]);
+  useFrame((_, delta) => {
+    const move = movement.current;
+    if (move) {
+      move.elapsed += Math.min(delta, .05);
+      const progress = Math.min(1, move.elapsed / .85);
+      const eased = progress * progress * (3 - 2 * progress);
+      camera.position.lerpVectors(move.from, move.position, eased);
+      controls.target.lerpVectors(move.fromTarget, move.center, eased);
+      camera.up.lerpVectors(move.fromUp, move.up, eased).normalize();
+      camera.lookAt(controls.target);
+      if (progress === 1) {
+        movement.current = null;
+        if (!terminalOpen) controls.update();
+        controls.enabled = orbitAllowed.current;
+        onCameraReady(true);
+      } else invalidate();
+    } else if (controls.enabled) controls.update();
+  });
   return null;
 }
-Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func, onZoomChange: PropTypes.func.isRequired };
+Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func, onZoomChange: PropTypes.func.isRequired, laptop: PropTypes.object, terminalOpen: PropTypes.bool, onCameraReady: PropTypes.func.isRequired };
 
 function InteractiveLabels({ onUpdate }) {
   const { camera, size } = useThree();
@@ -99,6 +145,39 @@ function InteractiveLabels({ onUpdate }) {
   return null;
 }
 InteractiveLabels.propTypes = { onUpdate: PropTypes.func.isRequired };
+
+// Map a DOM terminal onto the four projected corners of the laptop display.
+function ScreenProjection({ laptop, onUpdate }) {
+  const { camera, size } = useThree();
+  const last = useRef('');
+  useFrame(() => {
+    laptop.updateWorldMatrix(true, true);
+    const lid = laptop.getObjectByName('lid');
+    const points = [[-.144, .195], [.144, .195], [.144, .014], [-.144, .014]].map(([x, z]) => {
+      const p = lid.localToWorld(new Vector3(x, -.0055, z)).project(camera);
+      return [(p.x + 1) * size.width / 2, (1 - p.y) * size.height / 2];
+    });
+    const width = Math.max(1, Math.round(Math.hypot(points[1][0] - points[0][0], points[1][1] - points[0][1])));
+    const height = Math.max(1, Math.round(Math.hypot(points[3][0] - points[0][0], points[3][1] - points[0][1])));
+    const source = [[0, 0], [width, 0], [width, height], [0, height]];
+    const rows = source.flatMap(([x, y], i) => {
+      const [u, v] = points[i];
+      return [[x, y, 1, 0, 0, 0, -u*x, -u*y, u], [0, 0, 0, x, y, 1, -v*x, -v*y, v]];
+    });
+    for (let i = 0; i < 8; i++) {
+      let pivot = i; for (let j = i + 1; j < 8; j++) if (Math.abs(rows[j][i]) > Math.abs(rows[pivot][i])) pivot = j;
+      [rows[i], rows[pivot]] = [rows[pivot], rows[i]];
+      const divisor = rows[i][i]; if (Math.abs(divisor) < 1e-10) return;
+      for (let k = i; k < 9; k++) rows[i][k] /= divisor;
+      for (let j = 0; j < 8; j++) if (j !== i) { const factor = rows[j][i]; for (let k = i; k < 9; k++) rows[j][k] -= factor * rows[i][k]; }
+    }
+    const [a,b,c,d,e,f,g,h] = rows.map(row => row[8]);
+    const transform = `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
+    if (last.current !== transform) { last.current = transform; onUpdate({ transform, width, height }); }
+  });
+  return null;
+}
+ScreenProjection.propTypes = { laptop: PropTypes.object.isRequired, onUpdate: PropTypes.func.isRequired };
 
 function Model({ object, section, onSelect, onHover, paused, gesture }) {
   const [hovered, setHovered] = useState(false);
@@ -165,6 +244,14 @@ function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRack
   mat.position.set(-.08, desk.height + .009, .18);
   mat.receiveShadow = true;
   const laptop = place(laptopScene, [-.35, desk.height + .018, -.12]).group;
+  const preview = document.createElement('canvas'); preview.width = 800; preview.height = 500;
+  const context = preview.getContext('2d');
+  context.fillStyle = '#101a18'; context.fillRect(0, 0, 800, 500);
+  context.fillStyle = '#8bddb0'; context.font = '24px monospace';
+  ['nuzaim@workspace: ~', '', '$ experience', 'Software Engineer', 'Turbolab Technologies', '', '$ projects', 'Select laptop to explore →'].forEach((line, index) => context.fillText(line, 40, 55 + index * 48));
+  const screen = new Mesh(new PlaneGeometry(.288, .181), new MeshBasicMaterial({ map: new CanvasTexture(preview), toneMapped: false }));
+  screen.rotation.x = Math.PI / 2; screen.position.set(0, -.0048, .1045);
+  laptop.getObjectByName('lid').add(screen);
   const serverRack = place(serverRackScene, [4.3, 0, -1.15]).group;
   const books = place(booksScene, [-1.95, desk.height, .32], [0, -.12, 0]).group;
   // Rotate before measuring bounds so the screen faces up and the back rests
@@ -178,11 +265,19 @@ function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRack
   return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug, chair };
 }
 
-export default function Workspace({ paused, reset, onSelect, onFailure, onZoomChange }) {
+export default function Workspace({ paused, reset, onSelect, onFailure, onZoomChange, terminalSection, onTerminalClose }) {
+  const [cameraReady, setCameraReady] = useState(false);
+  const [displaySection, setDisplaySection] = useState(terminalSection);
+  const [screenStyle, setScreenStyle] = useState(null);
   const [models, setModels] = useState(null);
   const [hover, setHover] = useState(null);
   const [labelPositions, setLabelPositions] = useState([]);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    if (terminalSection) { setDisplaySection(terminalSection); return; }
+    const timeout = setTimeout(() => setDisplaySection(null), reduced ? 0 : 280);
+    return () => clearTimeout(timeout);
+  }, [terminalSection, reduced]);
   const gesture = useRef({ moved: false, points: new Set(), x: 0, y: 0 });
   useEffect(() => {
     const query = matchMedia('(prefers-reduced-motion: reduce)');
@@ -229,25 +324,27 @@ export default function Workspace({ paused, reset, onSelect, onFailure, onZoomCh
       <color attach="background" args={['#d2d2ce']} /><fog attach="fog" args={['#d2d2ce', 20, 40]} />
       <ambientLight intensity={1.5} /><hemisphereLight args={['#ffffff', '#757570', 1.2]} />
       <directionalLight position={[-3, 12, 6]} intensity={2.2} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-.0003} shadow-normalBias={.015} shadow-radius={4} />
-      <Controls paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} onZoomChange={onZoomChange} />
+      <Controls onCameraReady={setCameraReady} laptop={models.laptop} terminalOpen={Boolean(terminalSection)} paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} onZoomChange={onZoomChange} />
       <InteractiveLabels onUpdate={setLabelPositions} />
+      {displaySection && <ScreenProjection laptop={models.laptop} onUpdate={setScreenStyle} />}
       <primitive object={models.desk} />
       <primitive object={models.mat} />
       <primitive object={models.plant} />
       <primitive object={models.lamp} />
       <primitive object={models.mug} />
       <primitive object={models.chair} />
-      <Model object={models.laptop} section="experience" {...{ onSelect, paused, gesture }} onHover={setHover} />
-      <Model object={models.serverRack} section="projects" {...{ onSelect, paused, gesture }} onHover={setHover} />
-      <Model object={models.books} section="knowledge" {...{ onSelect, paused, gesture }} onHover={setHover} />
-      <Model object={models.phone} section="contact" {...{ onSelect, paused, gesture }} onHover={setHover} />
+      <Model object={models.laptop} section="experience" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
+      <Model object={models.serverRack} section="projects" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
+      <Model object={models.books} section="knowledge" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
+      <Model object={models.phone} section="contact" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.025, 0]} receiveShadow><planeGeometry args={[100, 100]} /><meshStandardMaterial color="#c5c5c0" roughness={1} /></mesh>
     </Canvas>}
-    {!paused && <div className="sceneAnnotations" aria-hidden="true">
+    {!paused && !terminalSection && <div className="sceneAnnotations" aria-hidden="true">
       <svg className="sceneLeaders">{labelPositions.filter(item => item.visible).map(({ section, x, y, endX, endY }) => <g key={section}><line x1={x} y1={y} x2={endX} y2={endY} /><circle cx={x} cy={y} r="2" /></g>)}</svg>
       {labelPositions.filter(item => item.visible).map(({ section, text, number, labelX, labelY }) => <span key={section} className="sceneObjectLabel" style={{ transform: `translate(${labelX}px, ${labelY}px)` }}><small>{String(number).padStart(2, '0')}</small>{text}<b>↗</b></span>)}
     </div>}
-    {hover && !paused && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
+    {hover && !paused && !terminalSection && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
+    {displaySection && models && screenStyle && <LaptopTerminal active={Boolean(terminalSection) && cameraReady} section={displaySection} onClose={onTerminalClose} onSelect={onSelect} style={screenStyle} />}
   </div>;
 }
-Workspace.propTypes = { paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired, onZoomChange: PropTypes.func.isRequired };
+Workspace.propTypes = { terminalSection: PropTypes.string, onTerminalClose: PropTypes.func.isRequired, paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired, onZoomChange: PropTypes.func.isRequired };

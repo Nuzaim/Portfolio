@@ -29,7 +29,7 @@ Once you have installed the dependencies, you can start using the Vite Project b
 
 ## Interactive workspace
 
-Desktop opens an orbitable Three.js / React Three Fiber 8 workspace. Select the laptop (Experience), server rack (Projects), books (Knowledge), or telephone (Contact). The sit-stand desk anchors the scene. The persistent section links provide equivalent keyboard access. Drag to orbit, scroll or pinch to zoom, and use Reset view to return to the starting camera. Dialogs use native modal focus containment and Escape handling.
+Desktop opens an orbitable Three.js / React Three Fiber 8 workspace. Select the laptop (Experience), server rack (Projects), books (Knowledge), or telephone (Contact). Experience and Projects focus the laptop display and open an interactive terminal. Type `experience`, `projects`, `help`, `clear`, or `exit`, or use the command buttons. Up/down arrows recall commands; Escape returns to the workspace. Project links open in a new tab. The sit-stand desk anchors the scene. The persistent section links provide equivalent keyboard access. Drag to orbit, scroll or pinch to zoom, and use Reset view to return to the starting camera. Dialogs use native modal focus containment and Escape handling.
 
 Phones below 768px start in text view without fetching the scene bundle or GLBs. Explore in 3D loads them on demand. Explicit view choices persist in session storage. Asset/WebGL failures and context loss fall back to the complete text portfolio with a retry control. Fragment links and legacy aliases work in both views.
 

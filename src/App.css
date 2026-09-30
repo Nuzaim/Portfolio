@@ -126,3 +126,5 @@ button:focus-visible, a:focus-visible { outline: 3px solid #555; outline-offset:
   .dialogContent { padding: 24px 20px; }
   .errorNotice { margin: 20px; }
 }
+
+.terminalView .intro { display: none; }

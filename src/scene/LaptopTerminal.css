@@ -1,0 +1,35 @@
+.laptopTerminal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; container-type: inline-size; transform-origin: 0 0; display: flex; flex-direction: column; background: #101a18; color: #d5e7dc; font: 1rem/1.5 'IBM Plex Mono', monospace; z-index: 3; overflow: hidden; touch-action: auto; box-sizing: border-box; }
+.laptopTerminal header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #23302b; font-size: .875em; }
+.terminalLights { color: #8bddb0; letter-spacing: 4px; }
+.laptopTerminal button { padding: 5px 12px; border: 1px solid #53675c; background: transparent; color: #a5e7bf; font: inherit; }
+.laptopTerminal button:hover { background: #304b3a; color: #fff; }
+.laptopTerminal button:focus-visible, .laptopTerminal a:focus-visible, .laptopTerminal input:focus-visible, .terminalOutput:focus-visible { outline: 2px solid #a5e7bf; outline-offset: -2px; }
+.laptopTerminal nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px; border-bottom: 1px solid #34473d; font-size: .875em; }
+.laptopTerminal nav button:last-child { margin-left: auto; }
+.terminalOutput { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 8px 24px 20px; scrollbar-color: #52685b #101a18; }
+.terminalWelcome, .terminalMuted { color: #9aae9f; }
+.terminalPrompt { color: #8bddb0; margin: 14px 0 10px; }
+.terminalPrompt span { color: #fff; }
+.laptopTerminal h2, .laptopTerminal h3 { font: 600 1em/1.5 'IBM Plex Mono', monospace; margin: 8px 0; }
+.laptopTerminal p { margin: 6px 0 10px; }
+.laptopTerminal li { margin-bottom: 12px; }
+.laptopTerminal ul { padding-left: 22px; }
+.laptopTerminal article { margin: 14px 0 20px; padding-bottom: 14px; border-bottom: 1px dashed #34473d; }
+.laptopTerminal a { color: #8bddb0; text-decoration: underline; text-underline-offset: 4px; }
+.laptopTerminal form { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #34473d; color: #8bddb0; }
+.laptopTerminal input { flex: 1; min-width: 0; background: transparent; border: 0; color: #fff; font: inherit; }
+
+
+
+.laptopTerminal { opacity: 0; transition: opacity 280ms ease; pointer-events: none; }
+.laptopTerminal.isActive { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .laptopTerminal { transition: none; } }
+
+@container (max-width: 480px) {
+  .laptopTerminal header { padding: 5px 8px; font-size: .75em; }
+  .laptopTerminal nav { padding: 5px 8px; gap: 4px; font-size: .75em; }
+  .laptopTerminal button { padding: 3px 6px; }
+  .terminalLights { letter-spacing: 1px; }
+  .terminalOutput { padding: 4px 10px 10px; }
+  .laptopTerminal form { padding: 5px 8px; gap: 6px; }
+}

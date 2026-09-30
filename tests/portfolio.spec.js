@@ -37,8 +37,8 @@ test('all four physical props select content, orbit does not click, and reset re
     await page.mouse.move(x, y);
     await expect(page.locator('.objectLabel')).toContainText(new RegExp(id, 'i'));
     await page.mouse.click(x, y);
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.locator('#dialog-title')).toHaveText(id);
+    if (['experience', 'projects'].includes(id)) await expect(page.locator('.laptopTerminal')).toBeVisible();
+    else { await expect(page.getByRole('dialog')).toBeVisible(); await expect(page.locator('#dialog-title')).toHaveText(id); }
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.mouse.move(1300, 500);
@@ -85,20 +85,25 @@ test('dialogs, keyboard focus, history, and explicit view preference', async ({ 
     const link = page.locator(`[data-section="${section}"]`);
     await link.focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
-    await page.keyboard.press('Shift+Tab');
-    expect(await page.evaluate(() => document.querySelector('dialog').contains(document.activeElement))).toBe(true);
+    if (['experience', 'projects'].includes(section)) {
+      await expect(page.locator('.laptopTerminal')).toBeVisible();
+      await expect(page.getByRole('textbox', { name: 'Terminal command' })).toBeFocused();
+    } else {
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
+      await page.keyboard.press('Shift+Tab');
+      expect(await page.evaluate(() => document.querySelector('dialog').contains(document.activeElement))).toBe(true);
+    }
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(link).toBeFocused();
   }
   await page.locator('[data-section="projects"]').click();
-  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await page.getByRole('button', { name: 'Back to workspace', exact: true }).click();
   await page.goBack();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.locator('.laptopTerminal')).toBeVisible();
   await page.goForward();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('.laptopTerminal')).toHaveCount(0);
   await page.getByRole('button', { name: 'Text view' }).click();
   await page.reload();
   await expect(page.locator('canvas')).toHaveCount(0);
@@ -154,4 +159,47 @@ test('tablet and optional mobile scene support reduced motion and fullscreen dia
   const box = await page.getByRole('dialog').boundingBox();
   expect(box.width).toBe(390);
   expect(box.height).toBe(844);
+});
+
+
+test('laptop terminal commands share portfolio content and support history, clear and exit', async ({ page }) => {
+  await page.goto('/#experience');
+  const terminal = page.locator('.laptopTerminal');
+  await expect(terminal).toBeVisible();
+  await expect(terminal.getByRole('heading', { name: 'Software Engineer · Turbolab Technologies' })).toBeVisible();
+  const input = page.getByRole('textbox', { name: 'Terminal command' });
+  await input.fill('projects'); await input.press('Enter');
+  for (const project of projects) await expect(terminal.locator(`a[href="${project.link}"]`).first()).toBeAttached();
+  await expect(page).toHaveURL(/#projects$/);
+  await input.fill('unknown'); await input.press('Enter');
+  await expect(terminal.getByRole('status')).toContainText('Unknown command');
+  await input.press('ArrowUp'); await expect(input).toHaveValue('unknown');
+  await input.press('ArrowDown'); await expect(input).toHaveValue('');
+  await terminal.getByRole('button', { name: 'clear', exact: true }).click();
+  await expect(terminal.locator('.terminalEntry')).toHaveCount(0);
+  await input.fill('help'); await input.press('Enter');
+  await expect(terminal).toContainText('command history');
+  await input.fill('exit'); await input.press('Enter');
+  await expect(terminal).toHaveCount(0);
+  await expect(page.locator('nav a[data-section="projects"]')).toBeFocused();
+});
+
+
+test('laptop camera moves before the terminal fades in and supports interrupted navigation', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('canvas[data-ready]')).toBeVisible();
+  await page.locator('nav a[data-section="experience"]').click();
+  const terminal = page.locator('.laptopTerminal');
+  await expect(terminal).toBeAttached();
+  const initialTransform = await terminal.evaluate(element => element.style.transform);
+  await expect(terminal).toHaveAttribute('inert', '');
+  await expect(terminal).toHaveClass(/isActive/);
+  expect(await terminal.evaluate(element => element.style.transform)).not.toBe(initialTransform);
+  await expect(page.getByRole('textbox', { name: 'Terminal command' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.locator('nav a[data-section="projects"]').click();
+  await expect(terminal).toHaveClass(/isActive/);
+  await expect(terminal.getByRole('heading', { name: 'Selected projects' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(terminal).toHaveCount(0);
 });
