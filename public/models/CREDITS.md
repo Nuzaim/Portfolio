@@ -20,6 +20,8 @@ Poly Haven license: https://polyhaven.com/license
 
 The five Polyfork files are kept local so the workspace remains usable offline. The low-poly GLBs are placed at authored real-world scale: the sit-stand desk is the composition anchor, the laptop is the Experience target, the server rack is the Projects target, the exercise books are the Knowledge target, and the smartphone is the Contact target.
 
+The top notebook of the Polyfork stack is replaced at runtime with original hardback geometry: separate covers, spine, page blocks, and a hinged cover. The lower five books retain the Polyfork geometry.
+
 The older optimized computer, desk, books, and telephone files remain in the folder as unused legacy assets; only the files in the table are loaded. No postprocessing or runtime external asset hosts are used.
 
 ## Rebuilding

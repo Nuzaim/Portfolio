@@ -51,8 +51,9 @@ export default function App() {
     requestAnimationFrame(() => viewButton.current?.focus());
   };
   const terminalSection = view === 'scene' && ['experience', 'projects'].includes(section) ? section : null;
-  const dialogSection = view === 'scene' ? (terminalSection ? null : section) : section === 'credits' ? section : null;
-  return <div className={`portfolio ${view === 'scene' ? `sceneView${terminalSection ? ' terminalView' : ''}` : 'textView'}`}>
+  const bookSection = view === 'scene' && section === 'knowledge';
+  const dialogSection = view === 'scene' ? (terminalSection || bookSection ? null : section) : section === 'credits' ? section : null;
+  return <div className={`portfolio ${view === 'scene' ? `sceneView${terminalSection || bookSection ? ' terminalView' : ''}` : 'textView'}`}>
     <Analytics />
     <a className="skipLink" href="#experience" onClick={event => { event.preventDefault(); navigate('experience'); if (view === 'text') document.getElementById('experience')?.focus(); }}>Skip to content</a>
     <header className="siteHeader"><a className="monogram" href="#top" aria-label="Home" onClick={event => { event.preventDefault(); navigate(null); window.scrollTo(0, 0); }}>N / N / T<span>Engineer’s workspace</span></a>
@@ -63,7 +64,7 @@ export default function App() {
       <div className={`intro${view === 'scene' && zoomedIn ? ' isZoomedIn' : ''}`}><p className="eyebrow">Portfolio / 2026</p><h1>Nuzaim<br />Noushad Thappi<span>®</span></h1><p className="role">Software Engineer</p><p className="introSentence">Building resilient backend systems.</p></div>
       {view === 'scene' ? <>
         <div className="sceneStage" role="region" aria-label="Interactive 3D desk. Drag to orbit, scroll to zoom. Use section navigation for keyboard access.">
-          <SceneBoundary key={attempt} onFailure={fail}><Suspense fallback={<p className="loadingStatus" role="status">Opening the workspace…</p>}><Workspace paused={Boolean(dialogSection)} terminalSection={terminalSection} onTerminalClose={() => { const previous = terminalSection; navigate(null); requestAnimationFrame(() => document.querySelector(`a[data-section="${previous}"]`)?.focus()); }} reset={reset} onSelect={navigate} onFailure={fail} onZoomChange={setZoomedIn} /></Suspense></SceneBoundary>
+          <SceneBoundary key={attempt} onFailure={fail}><Suspense fallback={<p className="loadingStatus" role="status">Opening the workspace…</p>}><Workspace paused={Boolean(dialogSection)} terminalSection={terminalSection} bookSection={bookSection} onTerminalClose={() => { const previous = terminalSection || (bookSection ? 'knowledge' : null); navigate(null); requestAnimationFrame(() => document.querySelector(`a[data-section="${previous}"]`)?.focus()); }} reset={reset} onSelect={navigate} onFailure={fail} onZoomChange={setZoomedIn} /></Suspense></SceneBoundary>
         </div>
         <div className="sceneFooter"><p><span className="liveDot" /> A workspace, open to explore.<small>Drag to orbit · Scroll to zoom · Select an object</small></p><button onClick={() => { navigate(null); setReset(value => value + 1); }}>Reset view ↺</button></div>
       </> : <>

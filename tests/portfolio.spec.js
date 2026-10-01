@@ -38,6 +38,7 @@ test('all four physical props select content, orbit does not click, and reset re
     await expect(page.locator('.objectLabel')).toContainText(new RegExp(id, 'i'));
     await page.mouse.click(x, y);
     if (['experience', 'projects'].includes(id)) await expect(page.locator('.laptopTerminal')).toBeVisible();
+    else if (id === 'knowledge') await expect(page.getByRole('button', { name: 'Close knowledge book' })).toBeFocused();
     else { await expect(page.getByRole('dialog')).toBeVisible(); await expect(page.locator('#dialog-title')).toHaveText(id); }
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -88,6 +89,8 @@ test('dialogs, keyboard focus, history, and explicit view preference', async ({ 
     if (['experience', 'projects'].includes(section)) {
       await expect(page.locator('.laptopTerminal')).toBeVisible();
       await expect(page.getByRole('textbox', { name: 'Terminal command' })).toBeFocused();
+    } else if (section === 'knowledge') {
+      await expect(page.getByRole('button', { name: 'Close knowledge book' })).toBeFocused();
     } else {
       await expect(page.getByRole('dialog')).toBeVisible();
       await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
@@ -155,7 +158,7 @@ test('tablet and optional mobile scene support reduced motion and fullscreen dia
   await expect(page.locator('canvas[data-ready]')).toBeVisible();
   await page.screenshot({ path: 'test-results/tablet.png' });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('[data-section="knowledge"]').click();
+  await page.locator('[data-section="contact"]').click();
   const box = await page.getByRole('dialog').boundingBox();
   expect(box.width).toBe(390);
   expect(box.height).toBe(844);
@@ -188,13 +191,21 @@ test('laptop terminal commands share portfolio content and support history, clea
 test('laptop camera moves before the terminal fades in and supports interrupted navigation', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('canvas[data-ready]')).toBeVisible();
+  await page.evaluate(() => {
+    window.terminalMotion = [];
+    window.terminalObserver = new MutationObserver(() => {
+      const element = document.querySelector('.laptopTerminal');
+      if (element) window.terminalMotion.push({ transform: element.style.transform, inert: element.hasAttribute('inert') });
+    });
+    window.terminalObserver.observe(document.querySelector('.sceneStage'), { childList: true, subtree: true, attributes: true });
+  });
   await page.locator('nav a[data-section="experience"]').click();
   const terminal = page.locator('.laptopTerminal');
   await expect(terminal).toBeAttached();
-  const initialTransform = await terminal.evaluate(element => element.style.transform);
-  await expect(terminal).toHaveAttribute('inert', '');
   await expect(terminal).toHaveClass(/isActive/);
-  expect(await terminal.evaluate(element => element.style.transform)).not.toBe(initialTransform);
+  const frames = await page.evaluate(() => { window.terminalObserver.disconnect(); return window.terminalMotion; });
+  expect(frames.some(frame => frame.inert)).toBe(true);
+  expect(new Set(frames.map(frame => frame.transform)).size).toBeGreaterThan(1);
   await expect(page.getByRole('textbox', { name: 'Terminal command' })).toBeFocused();
   await page.keyboard.press('Escape');
   await page.locator('nav a[data-section="projects"]').click();
@@ -202,4 +213,38 @@ test('laptop camera moves before the terminal fades in and supports interrupted 
   await expect(terminal.getByRole('heading', { name: 'Selected projects' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(terminal).toHaveCount(0);
+});
+
+
+test('Knowledge opens inside the book with skills, education and keyboard return', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('canvas[data-ready]')).toBeVisible();
+  await page.mouse.click(535, 415);
+  const close = page.getByRole('button', { name: 'Close knowledge book' });
+  await expect(close).toBeFocused();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Languages', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Education', exact: false }).click();
+  await expect(page.locator('.bookPageBody')).toContainText('Government Engineering College Palakkad');
+  await page.getByRole('button', { name: 'Previous knowledge page' }).click();
+  await expect(page.getByRole('heading', { name: 'AI & LLM', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.bookChapter')).toHaveCount(0);
+  await expect(page.locator('nav a[data-section="knowledge"]')).toBeFocused();
+  await page.locator('nav a[data-section="projects"]').click();
+  await expect(page.locator('.laptopTerminal')).toHaveClass(/isActive/);
+});
+
+test('mobile knowledge page fits the screen and offers every chapter', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#knowledge');
+  await page.getByRole('button', { name: 'Explore in 3D' }).click();
+  const close = page.getByRole('button', { name: 'Close knowledge book' });
+  await expect(close).toBeFocused();
+  const box = await page.locator('.bookChapter').boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(390);
+  for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'Next knowledge page' }).click();
+  await expect(page.getByRole('heading', { name: 'Education', exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/knowledge-mobile.png' });
 });

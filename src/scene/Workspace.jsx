@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import LaptopTerminal from './LaptopTerminal';
+import KnowledgeBook from './KnowledgeBook';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Box3, BoxGeometry, CanvasTexture, Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3 } from 'three';
+import { Box3, BoxGeometry, BufferGeometry, Float32BufferAttribute, CanvasTexture, Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -30,7 +31,7 @@ function disposeModels(models) {
   geometries.forEach(item => item.dispose()); materials.forEach(item => item.dispose()); textures.forEach(item => item.dispose());
 }
 
-function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, terminalOpen, onCameraReady }) {
+function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, books, bookOpen, terminalOpen, onCameraReady }) {
   const { camera, gl, invalidate, setFrameloop, size } = useThree();
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
   const initialDistance = useRef(0);
@@ -43,7 +44,7 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
   }, [controls, onZoomChange]);
   const [visible, setVisible] = useState(!document.hidden);
   const orbitAllowed = useRef(false);
-  orbitAllowed.current = !terminalOpen && !paused && visible;
+  orbitAllowed.current = !terminalOpen && !bookOpen && !paused && visible;
   useEffect(() => {
     controls.domElement = gl.domElement;
     controls.connect();
@@ -65,7 +66,7 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
     controls.enabled = !paused && !terminalOpen && visible && !movement.current;
     controls.enableDamping = !reduced && !paused;
     invalidate();
-  }, [controls, paused, terminalOpen, reduced, visible, invalidate]);
+  }, [controls, paused, terminalOpen, bookOpen, reduced, visible, invalidate]);
   useEffect(() => {
     const center = new Vector3(...target);
     const up = new Vector3(0, 1, 0);
@@ -82,6 +83,17 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
       const distance = Math.max(.181 * 3.75, .288 * 3.75 / aspect) / (2 * Math.tan(camera.fov * Math.PI / 360)) * 1.35;
       position.copy(center).addScaledVector(normal, distance);
     }
+    if (bookOpen && books) {
+      books.updateWorldMatrix(true, true);
+      const book = books.getObjectByName('knowledgeBook');
+      const mobile = size.width < 768;
+      center.copy(book.localToWorld(new Vector3(mobile ? 0 : -.088, .035, 0)));
+      up.set(0, 0, -1).transformDirection(book.matrixWorld);
+      const normal = new Vector3(0, 1, 0).transformDirection(book.matrixWorld);
+      const span = mobile ? .18 : .36;
+      const distance = Math.max(.145 * 3.75, span * 3.75 / (size.width / size.height)) / (2 * Math.tan(camera.fov * Math.PI / 360)) * 1.25;
+      position.copy(center).addScaledVector(normal, distance);
+    }
     onCameraReady(false);
     controls.enabled = false;
     // Retarget from the current pose, including when navigation interrupts a move.
@@ -89,20 +101,19 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
       movement.current = null;
       camera.position.copy(position); camera.up.copy(up); controls.target.copy(center);
       camera.lookAt(center);
-      if (!terminalOpen) controls.update();
+      if (!terminalOpen && !bookOpen) controls.update();
       controls.enabled = orbitAllowed.current;
       onCameraReady(true);
     } else {
-      movement.current = { elapsed: 0, from: camera.position.clone(), fromTarget: controls.target.clone(), fromUp: camera.up.clone(), position, center, up };
+      movement.current = { start: performance.now(), from: camera.position.clone(), fromTarget: controls.target.clone(), fromUp: camera.up.clone(), position, center, up };
     }
     initialized.current = true;
-    onZoomChange(terminalOpen); invalidate();
-  }, [camera, controls, reset, invalidate, size.width, size.height, onZoomChange, laptop, terminalOpen, reduced, onCameraReady]);
-  useFrame((_, delta) => {
+    onZoomChange(terminalOpen || bookOpen); invalidate();
+  }, [camera, controls, reset, invalidate, size.width, size.height, onZoomChange, laptop, books, bookOpen, terminalOpen, reduced, onCameraReady]);
+  useFrame(() => {
     const move = movement.current;
     if (move) {
-      move.elapsed += Math.min(delta, .05);
-      const progress = Math.min(1, move.elapsed / .85);
+      const progress = Math.min(1, (performance.now() - move.start) / 850);
       const eased = progress * progress * (3 - 2 * progress);
       camera.position.lerpVectors(move.from, move.position, eased);
       controls.target.lerpVectors(move.fromTarget, move.center, eased);
@@ -110,7 +121,7 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
       camera.lookAt(controls.target);
       if (progress === 1) {
         movement.current = null;
-        if (!terminalOpen) controls.update();
+        if (!terminalOpen && !bookOpen) controls.update();
         controls.enabled = orbitAllowed.current;
         onCameraReady(true);
       } else invalidate();
@@ -118,7 +129,7 @@ function Controls({ paused, reset, reduced, onFailure, onZoomChange, laptop, ter
   });
   return null;
 }
-Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func, onZoomChange: PropTypes.func.isRequired, laptop: PropTypes.object, terminalOpen: PropTypes.bool, onCameraReady: PropTypes.func.isRequired };
+Controls.propTypes = { paused: PropTypes.bool, reset: PropTypes.number, reduced: PropTypes.bool, onFailure: PropTypes.func, onZoomChange: PropTypes.func.isRequired, laptop: PropTypes.object, books: PropTypes.object, bookOpen: PropTypes.bool, terminalOpen: PropTypes.bool, onCameraReady: PropTypes.func.isRequired };
 
 function InteractiveLabels({ onUpdate }) {
   const { camera, size } = useThree();
@@ -147,14 +158,15 @@ function InteractiveLabels({ onUpdate }) {
 InteractiveLabels.propTypes = { onUpdate: PropTypes.func.isRequired };
 
 // Map a DOM terminal onto the four projected corners of the laptop display.
-function ScreenProjection({ laptop, onUpdate }) {
+function ScreenProjection({ laptop, surface, onUpdate }) {
   const { camera, size } = useThree();
   const last = useRef('');
   useFrame(() => {
-    laptop.updateWorldMatrix(true, true);
-    const lid = laptop.getObjectByName('lid');
-    const points = [[-.144, .195], [.144, .195], [.144, .014], [-.144, .014]].map(([x, z]) => {
-      const p = lid.localToWorld(new Vector3(x, -.0055, z)).project(camera);
+    const object = surface || laptop.getObjectByName('lid');
+    object.updateWorldMatrix(true, false);
+    const corners = surface ? [[-.0825, .065, .0001], [.0825, .065, .0001], [.0825, -.065, .0001], [-.0825, -.065, .0001]] : [[-.144, -.0055, .195], [.144, -.0055, .195], [.144, -.0055, .014], [-.144, -.0055, .014]];
+    const points = corners.map(corner => {
+      const p = object.localToWorld(new Vector3(...corner)).project(camera);
       return [(p.x + 1) * size.width / 2, (1 - p.y) * size.height / 2];
     });
     const width = Math.max(1, Math.round(Math.hypot(points[1][0] - points[0][0], points[1][1] - points[0][1])));
@@ -177,7 +189,7 @@ function ScreenProjection({ laptop, onUpdate }) {
   });
   return null;
 }
-ScreenProjection.propTypes = { laptop: PropTypes.object.isRequired, onUpdate: PropTypes.func.isRequired };
+ScreenProjection.propTypes = { laptop: PropTypes.object, surface: PropTypes.object, onUpdate: PropTypes.func.isRequired };
 
 function Model({ object, section, onSelect, onHover, paused, gesture }) {
   const [hovered, setHovered] = useState(false);
@@ -200,6 +212,83 @@ function Model({ object, section, onSelect, onHover, paused, gesture }) {
     } : undefined} />;
 }
 Model.propTypes = { object: PropTypes.object.isRequired, section: PropTypes.string, onSelect: PropTypes.func, onHover: PropTypes.func, paused: PropTypes.bool, gesture: PropTypes.object };
+
+// Replace the source's already-open top notebook with an articulated hardback.
+// The first 948 vertices contain the five lower books in this local asset.
+function addBookHinge(scene) {
+  const mesh = scene.getObjectByProperty('isMesh', true);
+  const original = mesh.geometry;
+  const source = original.index ? original.toNonIndexed() : original;
+  const lowerBooks = new BufferGeometry();
+  Object.entries(source.attributes).forEach(([name, attribute]) => {
+    lowerBooks.setAttribute(name, new Float32BufferAttribute(attribute.array.slice(0, 948 * attribute.itemSize), attribute.itemSize));
+  });
+  mesh.geometry = lowerBooks;
+  source.dispose();
+  if (original !== source) original.dispose();
+
+  const book = new Group();
+  book.name = 'knowledgeBook';
+  book.position.set(0, .11375, 0);
+  book.rotation.y = -.08;
+  const coverMaterial = new MeshStandardMaterial({ color: '#824c3e', roughness: .85 });
+  const paperMaterial = new MeshStandardMaterial({ color: '#eeede9', roughness: 1 });
+  const piece = (width, height, depth, material, position, parent = book) => {
+    const part = new Mesh(new BoxGeometry(width, height, depth), material);
+    part.position.set(...position); part.castShadow = true; part.receiveShadow = true;
+    parent.add(part);
+    return part;
+  };
+  piece(.18, .002, .145, coverMaterial, [0, .001, 0]);
+  piece(.174, .012, .139, paperMaterial, [0, .008, 0]);
+  piece(.003, .024, .145, coverMaterial, [-.089, .012, 0]);
+  const hinge = new Group();
+  hinge.name = 'bookHinge'; hinge.position.set(-.088, .023, 0);
+  book.add(hinge);
+  piece(.18, .002, .145, coverMaterial, [.088, 0, 0], hinge);
+  piece(.174, .008, .139, paperMaterial, [.088, -.005, 0], hinge);
+  // Thin edges give the page blocks visible layers as the cover opens.
+  const pageEdgeMaterial = new MeshStandardMaterial({ color: '#c6c4bb', roughness: 1 });
+  for (let i = 0; i < 5; i++) {
+    piece(.173, .00025, .0004, pageEdgeMaterial, [0, .004 + i * .002, .0697]);
+  }
+  const page = document.createElement('canvas'); page.width = 256; page.height = 256;
+  const context = page.getContext('2d');
+  context.fillStyle = '#eeede9'; context.fillRect(0, 0, 256, 256);
+  context.fillStyle = '#565650'; context.font = 'bold 20px monospace';
+  context.fillText('KNOWLEDGE', 28, 45);
+  context.fillStyle = '#b7b7af';
+  for (let line = 0; line < 9; line++) context.fillRect(28, 75 + line * 16, line % 3 === 2 ? 135 : 194, 2);
+  const pageMaterial = new MeshBasicMaterial({ map: new CanvasTexture(page), toneMapped: false });
+  const pageFace = new Mesh(new PlaneGeometry(.165, .13), pageMaterial);
+  pageFace.name = 'knowledgeRight';
+  pageFace.rotation.x = -Math.PI / 2; pageFace.position.set(0, .0141, 0); book.add(pageFace);
+  const inside = pageFace.clone();
+  inside.name = 'knowledgeLeft';
+  inside.rotation.x = Math.PI / 2; inside.rotation.z = Math.PI; inside.position.set(.088, -.0091, 0); hinge.add(inside);
+  mesh.add(book);
+}
+
+function BookAnimation({ books, open, reduced }) {
+  const { invalidate } = useThree();
+  const movement = useRef(null);
+  useEffect(() => {
+    const hinge = books.getObjectByName('bookHinge');
+    movement.current = { start: performance.now(), from: hinge.rotation.z, to: open ? Math.PI : 0 };
+    invalidate();
+  }, [books, open, reduced, invalidate]);
+  useFrame(() => {
+    const move = movement.current;
+    if (!move) return;
+    const progress = reduced ? 1 : Math.min(1, (performance.now() - move.start) / 750);
+    const eased = progress * progress * (3 - 2 * progress);
+    books.getObjectByName('bookHinge').rotation.z = move.from + (move.to - move.from) * eased;
+    if (progress < 1) invalidate();
+    else movement.current = null;
+  });
+  return null;
+}
+BookAnimation.propTypes = { books: PropTypes.object.isRequired, open: PropTypes.bool.isRequired, reduced: PropTypes.bool.isRequired };
 
 function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRackScene, books: booksScene, phone: phoneScene, plant: plantScene, lamp: lampScene, mug: mugScene, chair: chairScene }) {
   // Polyfork assets are authored in metres; preserve their relative dimensions.
@@ -239,6 +328,7 @@ function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRack
     }
     colors.needsUpdate = true;
   });
+  addBookHinge(booksScene);
   const desk = place(deskScene, [0, 0, 0]);
   const mat = new Mesh(new BoxGeometry(2.65, .018, 1.58), new MeshStandardMaterial({ color: '#8d9287', roughness: 1 }));
   mat.position.set(-.08, desk.height + .009, .18);
@@ -265,7 +355,10 @@ function assemble({ desk: deskScene, laptop: laptopScene, serverRack: serverRack
   return { desk: desk.group, mat, laptop, serverRack, books, phone, plant, lamp, mug, chair };
 }
 
-export default function Workspace({ paused, reset, onSelect, onFailure, onZoomChange, terminalSection, onTerminalClose }) {
+export default function Workspace({ paused, reset, onSelect, onFailure, onZoomChange, terminalSection, bookSection, onTerminalClose }) {
+  const bookOpen = Boolean(bookSection);
+  const [bookLeftStyle, setBookLeftStyle] = useState(null);
+  const [bookRightStyle, setBookRightStyle] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [displaySection, setDisplaySection] = useState(terminalSection);
   const [screenStyle, setScreenStyle] = useState(null);
@@ -324,27 +417,30 @@ export default function Workspace({ paused, reset, onSelect, onFailure, onZoomCh
       <color attach="background" args={['#d2d2ce']} /><fog attach="fog" args={['#d2d2ce', 20, 40]} />
       <ambientLight intensity={1.5} /><hemisphereLight args={['#ffffff', '#757570', 1.2]} />
       <directionalLight position={[-3, 12, 6]} intensity={2.2} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-.0003} shadow-normalBias={.015} shadow-radius={4} />
-      <Controls onCameraReady={setCameraReady} laptop={models.laptop} terminalOpen={Boolean(terminalSection)} paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} onZoomChange={onZoomChange} />
+      <Controls books={models.books} bookOpen={bookOpen} onCameraReady={setCameraReady} laptop={models.laptop} terminalOpen={Boolean(terminalSection)} paused={paused} reset={reset} reduced={reduced} onFailure={onFailure} onZoomChange={onZoomChange} />
       <InteractiveLabels onUpdate={setLabelPositions} />
       {displaySection && <ScreenProjection laptop={models.laptop} onUpdate={setScreenStyle} />}
+      {bookOpen && <><ScreenProjection surface={models.books.getObjectByName('knowledgeLeft')} onUpdate={setBookLeftStyle} /><ScreenProjection surface={models.books.getObjectByName('knowledgeRight')} onUpdate={setBookRightStyle} /></>}
       <primitive object={models.desk} />
       <primitive object={models.mat} />
       <primitive object={models.plant} />
       <primitive object={models.lamp} />
       <primitive object={models.mug} />
       <primitive object={models.chair} />
-      <Model object={models.laptop} section="experience" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
-      <Model object={models.serverRack} section="projects" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
-      <Model object={models.books} section="knowledge" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
-      <Model object={models.phone} section="contact" {...{ onSelect, paused: paused || Boolean(terminalSection), gesture }} onHover={setHover} />
+      <Model object={models.laptop} section="experience" {...{ onSelect, paused: paused || Boolean(terminalSection) || bookOpen, gesture }} onHover={setHover} />
+      <Model object={models.serverRack} section="projects" {...{ onSelect, paused: paused || Boolean(terminalSection) || bookOpen, gesture }} onHover={setHover} />
+      <BookAnimation books={models.books} open={bookOpen} reduced={reduced} />
+      <Model object={models.books} section="knowledge" {...{ onSelect, paused: paused || Boolean(terminalSection) || bookOpen, gesture }} onHover={setHover} />
+      <Model object={models.phone} section="contact" {...{ onSelect, paused: paused || Boolean(terminalSection) || bookOpen, gesture }} onHover={setHover} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.025, 0]} receiveShadow><planeGeometry args={[100, 100]} /><meshStandardMaterial color="#c5c5c0" roughness={1} /></mesh>
     </Canvas>}
-    {!paused && !terminalSection && <div className="sceneAnnotations" aria-hidden="true">
+    {!paused && !terminalSection && !bookOpen && <div className="sceneAnnotations" aria-hidden="true">
       <svg className="sceneLeaders">{labelPositions.filter(item => item.visible).map(({ section, x, y, endX, endY }) => <g key={section}><line x1={x} y1={y} x2={endX} y2={endY} /><circle cx={x} cy={y} r="2" /></g>)}</svg>
       {labelPositions.filter(item => item.visible).map(({ section, text, number, labelX, labelY }) => <span key={section} className="sceneObjectLabel" style={{ transform: `translate(${labelX}px, ${labelY}px)` }}><small>{String(number).padStart(2, '0')}</small>{text}<b>↗</b></span>)}
     </div>}
-    {hover && !paused && !terminalSection && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
+    {hover && !paused && !terminalSection && !bookOpen && <p className="objectLabel" role="status">{labels[hover]} <span>↗</span></p>}
+    {bookOpen && models && bookLeftStyle && bookRightStyle && <KnowledgeBook active={cameraReady} leftStyle={bookLeftStyle} rightStyle={bookRightStyle} onClose={onTerminalClose} />}
     {displaySection && models && screenStyle && <LaptopTerminal active={Boolean(terminalSection) && cameraReady} section={displaySection} onClose={onTerminalClose} onSelect={onSelect} style={screenStyle} />}
   </div>;
 }
-Workspace.propTypes = { terminalSection: PropTypes.string, onTerminalClose: PropTypes.func.isRequired, paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired, onZoomChange: PropTypes.func.isRequired };
+Workspace.propTypes = { bookSection: PropTypes.bool, terminalSection: PropTypes.string, onTerminalClose: PropTypes.func.isRequired, paused: PropTypes.bool.isRequired, reset: PropTypes.number.isRequired, onSelect: PropTypes.func.isRequired, onFailure: PropTypes.func.isRequired, onZoomChange: PropTypes.func.isRequired };

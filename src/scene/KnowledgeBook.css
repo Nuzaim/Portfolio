@@ -1,0 +1,30 @@
+.knowledgePage { position: absolute; top: 0; left: 0; transform-origin: 0 0; box-sizing: border-box; padding: 22px; background: #eeede9; color: #242424; font: 1rem/1.6 'Space Grotesk', sans-serif; display: flex; flex-direction: column; overflow: auto; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 280ms ease; touch-action: auto; container-type: inline-size; }
+.knowledgePage.isActive { opacity: 1; pointer-events: auto; }
+.knowledgePage h2 { font: 500 1.6rem/1.2 'Space Grotesk', sans-serif; letter-spacing: -.05em; margin: 12px 0 18px; }
+.knowledgePage p { margin: 8px 0 14px; }
+.knowledgePage button { background: transparent; color: inherit; padding: 4px 10px; border: 0; font: inherit; }
+.knowledgePage button:hover { background: #dcded5; }
+.knowledgePage button:disabled { opacity: .35; cursor: default; }
+.knowledgePage :focus-visible { outline: 2px solid #454b40; outline-offset: 2px; }
+.bookEyebrow { font: .7rem/1.4 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .08em; }
+.bookContents nav { display: flex; flex-direction: column; margin-top: 8px; }
+.bookContents nav button { display: flex; gap: 16px; padding: 7px 0; text-align: left; border-bottom: 1px solid #99999366; }
+.bookContents nav button[aria-current] { color: #454b40; font-weight: bold; }
+.bookContents nav span { font: .7rem/1.4 'IBM Plex Mono', monospace; color: #686860; }
+.bookChapter header, .bookChapter footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bookChapter footer { margin-top: auto; border-top: 1px solid #99999366; padding-top: 8px; font: .75rem/1.4 'IBM Plex Mono', monospace; }
+.bookPageBody { overflow: auto; min-height: 0; flex: 1; overscroll-behavior: contain; }
+.bookPageBody ul { padding-left: 20px; }
+.bookPageBody li { margin-bottom: 9px; }
+@media (max-width: 767px) { .bookContents { display: none; } }
+@container (max-width: 350px) { .knowledgePage h2 { font-size: 1.25rem; } }
+@media (prefers-reduced-motion: reduce) { .knowledgePage { transition: none; } }
+
+.bookContents > p:not(.bookEyebrow) { color: #5a5a54; font-size: .875rem; }
+.bookContents nav button { font-size: .875rem; }
+.bookContents nav button[aria-current] { background: #dcded580; }
+.bookChapter header { padding-bottom: 10px; border-bottom: 1px solid #99999366; }
+.bookChapter header > button, .bookChapter footer button { border: 1px solid #999993; font-family: 'IBM Plex Mono', monospace; }
+.bookPageBody ul { list-style: none; padding: 0; }
+.bookPageBody li { padding: 8px 0; margin: 0; border-bottom: 1px solid #99999344; }
+.bookPageBody li:last-child { border-bottom: 0; }
